@@ -1,0 +1,44 @@
+---
+title: "Chapter 2"
+format: html
+editor: visual
+---
+
+# Chapter 2
+
+Mostly an introduction chapter.
+
+Imports
+```{r}
+#| echo: false
+library(tidyverse)
+```
+
+
+## Fuel Economy Data
+One of the bread and butter datasets we will use for visualizations
+```{r}
+head(mpg)
+```
+
+
+Initial questions: How are the engine and fuel economy related? Do certain manufacturers care more about the economy more than others? (Or other aspects of the car like power?) Has fuel economy improved in the last 10 years? Is the fuel improvements mostly from a few manufacturers or all?
+
+### 2.2.1 Exercises
+1) List five functions that you could use to get more information about the `mpg` dataset.
+```{r}
+# Looking at mpg across manufacturers
+mpg |>
+  group_by(manufacturer) |> 
+  summarise(mean=mean(cty),std = sd(cty),med=median(cty)) |> 
+  arrange(desc(mean))
+# Lets just do a boxplot and that's five functions
+mpg |>
+  group_by(manufacturer) |> 
+  ggplot(aes(x=manufacturer,y=cty)) +
+  geom_boxplot() +
+  labs(x='Manufacturer',y='City MPG')+
+  theme(axis.text.x  = element_text(angle=-90, hjust=0.5, vjust=0, size=11,colour="black"))
+```
+
+
