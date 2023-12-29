@@ -1,0 +1,1 @@
+My repo for reoccuring training with ggplot2/tidyverse. The book was a Christmas present in 2023 and is a good launch point for me to do daily R activities to get better at coding and thinking analytically. 
