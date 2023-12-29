@@ -15,7 +15,7 @@ library(tidyverse)
 ```
 
 
-## Fuel Economy Data
+## 2.2 Fuel Economy Data
 One of the bread and butter datasets we will use for visualizations
 ```{r}
 head(mpg)
@@ -39,6 +39,67 @@ mpg |>
   geom_boxplot() +
   labs(x='Manufacturer',y='City MPG')+
   theme(axis.text.x  = element_text(angle=-90, hjust=0.5, vjust=0, size=11,colour="black"))
+
 ```
+2) How can you find out what other datasets are included with ggplot2?
+```{r}
+data(package='ggplot2')
+```
+3) Apart from the US, most countries use fuel consumption (fuel consumed over fixed distance) rather than fuel economy (distance traveled with fixed amount of fuel). How could you convert cty and hwy into the European standard of 1/100 km?
+```{r}
+mpg |> 
+  mutate(cty_miles_per_liter = cty/3.785412,
+         cty_kilometers_per_liter = cty_miles_per_liter*1.609344,
+         cty_liters_per_100km = 100/cty_kilometers_per_liter)
+```
+4) Which manufacturer has the most models in this dataset? Which model has the most variations? Does your answer change if you remove the redundant specification of drive train (e.g. "pathfinder 4wd", "a4 quattro") from the model name
+```{r}
+mpg |> 
+  group_by(manufacturer) |> 
+  summarize(count = n()) |> 
+  arrange(desc(count))
+
+mpg |> 
+  group_by(model) |> 
+  summarize(count = n()) |> 
+  arrange(desc(count))
+
+mpg |>
+  mutate(across('model',str_replace,'a4 quattro','a4'),across('model',str_remove,'4wd')) |>
+  group_by(model) |>
+  summarize(count = n()) |>
+  arrange(desc(count))
+```
+## 2.3 Key Components
+Key components to every ggplot figure
+```{r}
+ggplot(mpg,aes(x=displ,y=hwy,color=cyl)) + # Added a little color
+  geom_point()
+```
+### 2.3.1 Exercises
+1) How would you describe the relationship between cty and hwy? Do you have any concerns about drawing conclusions from that plot?
+```{r}
+ggplot(mpg,aes(cty,hwy))+
+  geom_point()
+```
+
+2) What does `ggplot(mpg,aes(model,manufacturer)) + geom_point()` show? Is it useful? How would you modify it so it is?
+```{r}
+ggplot(mpg,aes(model,hwy)) + 
+  geom_point() +
+  facet_grid(~manufacturer) +
+  theme(axis.ticks.x = element_blank(),strip.background.x = element_blank())
+# I can't figure out how to get rid of the axis ticks for model at the bottom... 
+
+```
+
+3) Describe the data, aesthetic mappings, and layers in the following
+```{r}
+ggplot(mpg,aes(cty,hwy))+geom_point()
+ggplot(diamonds,aes(carat,price))+geom_point()
+ggplot(economics, aes(date,unemploy))+geom_line()
+ggplot(mpg,aes(cty))+geom_histogram()
+```
+
 
 
