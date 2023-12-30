@@ -102,4 +102,36 @@ ggplot(mpg,aes(cty))+geom_histogram()
 ```
 
 
+## 2.4 Color, Size, Shape, and Other Aesthetic Attributes
+I just want to make a sidenote that all of the tidyverse uses colour/color since Hadley Wickham is from New Zealand but he still thought to accomodate for both. I think that's really interesting and shows the level of how he thinks about his software development.
+
+ggplot will take whatever data you give it for aesthetics and scale it somehow. Sometimes these need to be overridded since ggplot is just guessing. A quick example is how it creates a discrete scale for color.  The second example which is just a fixed color (no scale since no aes()). The last is when you scale within the layer, which scaled the value ``blue'' to a pinkish color. 
+```{r}
+
+ggplot(mpg,aes(displ,cty,color=class)) +
+  geom_point() +
+  scale_color_viridis_d()
+
+ggplot(mpg,aes(displ,hwy))+
+  geom_point(color='blue')
+
+ggplot(mpg,aes(displ,hwy))+
+  geom_point(aes(colour='blue'))
+```
+### 2.4.1 Exercises
+1) Experiment with the color, shape, and size aesthetics. What happens when you map them to continuous values? What about categorical? Can you use more than one aesthetic in one plot?
+```{r}
+
+```
+
+2) What happens if you map a continuous variable to shape?Why? What happens if you map `trans` to shape?
+```{r}
+
+```
+
+3) How is drive train related to fuel economy? How is drive train related to engine size and class?
+```{r}
+
+```
+
 
