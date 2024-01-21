@@ -348,3 +348,128 @@ mpg |>
 
 ```
 ### 2.6.5 ***Time series with line and path plots***
+The main two types of plots for time series are line plots `geom_line()` and path plots `geom_path()`
+
+We will use the `economics` dataset since the `mpg` dataset only has two values for the *years* variable. 
+
+```{r}
+ggplot(economics, aes(date, unemploy / pop)) +
+  geom_line()
+ggplot(economics, aes(date, uempmed)) +
+  geom_line()
+
+```
+Let's look at the unemployment rate vs length of unemployment and use the `geom_path()` layer to see changes in the rate over time. We will also take advantage of the tip from the book to color the points by the year in time to make it easier to track
+```{r}
+year <- function(x) as.POSIXlt(x)$year + 1900
+ggplot(economics, aes(unemploy / pop, uempmed)) + 
+  geom_path(colour = "grey50") +
+  geom_point(aes(colour = year(date)))
+```
+### 2.6.6 Exercises
+1) What's the problem with the plot created by `ggplot(mpg,aes(cty,hwy))+geom_point()`? Which of the geoms described above is most effective at remedying the problem?
+```{r}
+ggplot(mpg,aes(cty,hwy))+geom_jitter(alpha=0.3)
+```
+2) One challenge with `ggplot(mpg,aes(class,hwy))+geom_boxplot()` is that the ordering of `class` is alphabetical, which is not terribly useful. How could you change the factor levels to be more informative?
+```{r}
+ggplot(mpg,aes(reorder(class,hwy),hwy,fill=manufacturer))+geom_boxplot()
+```
+3) Explore the distribution of the carat variable in the diamonds dataset. What binwidth reveals the most interesting patterns?
+```{r}
+diamonds |> 
+  ggplot(aes(carat))+
+  geom_histogram(bins = 120)+
+  scale_x_continuous(breaks=seq(0,5,0.25))
+
+```
+Let's zoom in on the less than 2 carat sized ones
+```{r}
+ggplot(diamonds,aes(x=carat))+
+  geom_histogram(bins=200)+
+  scale_x_continuous(limits=c(0,2),breaks=seq(0,2,0.1))
+```
+4) Explore the distribution of the price variable in the `diamonds` data. How does the distribution vary by cut?
+```{r}
+# Using geom_histogram() and faceting
+ggplot(diamonds,aes(x=price))+
+  geom_histogram(bins=200)+
+  facet_wrap(~cut,scales='free')
+
+# Using geom_boxplot
+ggplot(diamonds,aes(x=price,y=cut,color=cut))+
+  geom_boxplot()
+```
+5) What are the strengths and weaknesses of the three ways to compare distributions of subgroups?
+- For the `geom_histogram()` and faceting, it's a straightforward idea but then scale-wise you're having to squint to see some of the nuance there. 
+- For the `geom_violin()/boxplot()` with color, the color isn't needed since you can just separate them by a y-axis/x-axis. However outliers and such add difficulty in seeing the tails of the distribution. 
+- For the `geom_freqplot()` with color, you get it all on one plot as well but the overlaps make it harder to see differences. 
+Winner winner chicken dinner for me is a boxplot/violinplot in this scenario. 
+
+6) Read the documentation for `geom_bar()`. What does the `weight` aesthetic do?
+```{r}
+?stat_count
+# weight gives the sum of a continuous value
+ggplot(mpg, aes(class)) +
+  geom_bar() # Num cars in each class
+ggplot(mpg,aes(class))+
+  geom_bar(aes(weight=displ)) # Total displacement of each class of cars
+```
+7) Using the techniques already discussed in this chapter, come up with three ways to visualize a 2D categorical distribution.
+```{r}
+ggplot(data = mpg,aes(x = class, y = manufacturer)) +
+  geom_tile()
+```
+```{r}
+library(ggmosaic)
+ggplot(data = mpg) +
+  geom_mosaic(aes(x = product(class, manufacturer), fill = manufacturer))
+
+```
+```{r}
+ggplot(data = mpg,aes(x = hwy)) +
+  geom_histogram(bins = 10) +
+  facet_grid(cyl ~ trans)
+
+```
+## 2.7 ***Modifying the axes***
+Just an intro but using `xlab()` and `ylab()` are the most popular ones
+```{r}
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point(alpha = 1 / 3) + 
+  xlab("city driving (mpg)") + 
+  ylab("highway driving (mpg)")
+
+# Remove the axis labels with NULL
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point(alpha = 1 / 3) + 
+  xlab(NULL) + 
+  ylab(NULL)
+
+```
+`xlim()` and `ylim()` for limits of axes
+```{r}
+ggplot(mpg,aes(drv,hwy))+geom_jitter(width=0.2)
+
+ggplot(mpg,aes(drv,hwy))+
+  geom_jitter(width=0.2)+
+  xlim('f','r')+ # Note it worked for categorical variables
+  ylim(20,30)
+
+# For continuous scales, use NA to set only one limit
+ggplot(mpg,aes(drv,hwy))+
+  geom_jitter(width=0.2,na.rm=TRUE)+
+  ylim(NA,30)
+```
+## 2.8 ***Ouput***
+We can create a plot object, manipulate it (imagine a ``base'' plot), and choose when to show it, as well as save a plot to a file
+```{r}
+p <- ggplot(mpg, aes(displ, hwy, colour = factor(cyl))) +
+  geom_point()
+print(p)
+# Save png to disk
+# ggsave("plot.png", p, width = 5, height = 5)
+# Describe the plot structure
+summary(p)
+```
+
