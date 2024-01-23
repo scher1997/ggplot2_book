@@ -1,0 +1,39 @@
+---
+title: "Chapter 4"
+format: html
+editor: visual
+---
+
+# Chapter 4 ***Collective geoms***
+
+Chapter on Collective geoms to gain familiarization. A *collective* geom displays multiple observations with one geometric object. The key player in this is the `group` aesthetic.
+
+By default, the `group` aesthetic is mapped to the interaction of all discrete variables in the plot. 
+
+Imports and data of interest. Data is heights of 26 boys measured on nine occasions.
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(gridExtra) # multiplots
+data("Oxboys",package='nlme')
+head(Oxboys)
+```
+## 4.1 ***Multiple groups, one aesthetic***
+In longitudinal studies like this we can use a spaghetti plot to show the growth trajectory of each boy.
+```{r}
+ggplot(Oxboys,aes(age,height,group=Subject))+
+  geom_point()+
+  geom_line()
+```
+If a group is more than one variable, like an combination of multiple variables, then we can use `interaction(school_id,student_id)`.
+
+## 4.2 ***Different groups on different layers***
+Let's say you want to use different levels of aggregation. One layer is individuals, another layer is average/summary of some sort. 
+So we will want to do the grouping aesthetic on the `geom_line()` layer to ensure that we only do that operation on that layer and not all layers.
+```{r}
+ggplot(Oxboys,aes(age,height))+
+  geom_line(aes(group=Subject))+
+  geom_smooth(method='lm',se=FALSE,linewidth=1.5,color='red')
+```
+

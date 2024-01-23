@@ -4,9 +4,9 @@ format: html
 editor: visual
 ---
 
-# Chapter 3 \*\*\*Individual geoms
+# Chapter 3 ***Individual geoms***
 
-Chapter on Individual geoms to gain familiarization.
+Chapter on Individual geoms to gain familiarization. An *individual* geeom draws a distinct graphical object for each observation (row).
 
 Imports
 
