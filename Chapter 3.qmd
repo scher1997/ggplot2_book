@@ -1,0 +1,56 @@
+---
+title: "Chapter 3"
+format: html
+editor: visual
+---
+
+# Chapter 3 \*\*\*Individual geoms
+
+Chapter on Individual geoms to gain familiarization.
+
+Imports
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(gridExtra) # multiplots
+```
+
+## 3.1 ***Basic plot types***
+
+The two dimensional plots covered are: - `geom_area()` which draws an *area plot*, which is a line plot filled to the y-axis. - `geom_bar(stat='identity')` makes a *bar chart*. - `geom_line()` makes a *line plot*. The `group` aesthetic determines which observations are connected. `geom_path()` is the same but the order is based on the order the observations appear in the data. - `geom_poin()` is the fan-favorite *scatterplot* - `geom_polygon()` draws polygons, which are filled paths. Each vertex is defined by a separate row in the data. - `geom_rect()`, `geom_tile()`, and `geom_raster()` draw rectangles. - `geom_text()` adds text to a plot. It requires a `label` aesthetic that provides the text to display.
+
+```{r}
+df <- data.frame(
+  x = c(3, 1, 5), 
+  y = c(2, 4, 6), 
+  label = c("a","b","c")
+)
+p <- ggplot(df, aes(x, y, label = label)) + 
+  labs(x = NULL, y = NULL) + # Hide axis label
+  theme(plot.title = element_text(size = 12)) # Shrink plot title
+p + geom_point() + ggtitle("point")
+p + geom_text() + ggtitle("text")
+p + geom_bar(stat = "identity") + ggtitle("bar")
+p + geom_tile() + ggtitle("raster")
+```
+
+```{r}
+p + geom_line() + ggtitle("line")
+p + geom_area() + ggtitle("area")
+p + geom_path() + ggtitle("path")
+p + geom_polygon() + ggtitle("polygon")
+```
+
+### 3.1.1 Exercises
+
+1)  What geoms would you use to draw each of the following named plots?
+
+-   Scatterplot = `geom_point()`
+-   Line chart = `geom_line()`
+-   Histogram = `geom_histogram()`
+-   Bar chart = `geom_bar()`
+-   Pie chart = `geom_bar()+ coord_polar()`\
+
+2)  What's the difference between the `geom_path()` and `geom_polygon()`? What's the differnce between `geom_path()` and `geom_line()` `geom_polygon()` fills in the space between the lines drawn in `geom_path()`. `geom_path()` and `geom_line()` interpret the order in a different manner.
+3)  What low-level geoms are used to draw `geom_smooth()`? What about `geom_boxplot()` and `geom_violin()`? `geom_smooth()` is based on `geom_path()`, `geom_area()`, and `geom_point()`. `geom_boxplot()` is based on `geom_rect()`, `geom_line()`, and `geom_point()`. `geom_violin()` is based on `geom_area()` and `geom_path()`.

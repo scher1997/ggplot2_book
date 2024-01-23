@@ -4,7 +4,7 @@ format: html
 editor: visual
 ---
 
-# Chapter 2
+# Chapter 2 ***First steps***
 
 Mostly an introduction chapter.
 
