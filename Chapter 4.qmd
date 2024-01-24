@@ -8,7 +8,7 @@ editor: visual
 
 Chapter on Collective geoms to gain familiarization. A *collective* geom displays multiple observations with one geometric object. The key player in this is the `group` aesthetic.
 
-By default, the `group` aesthetic is mapped to the interaction of all discrete variables in the plot. 
+By default, the `group` aesthetic is mapped to the interaction of all discrete variables in the plot.
 
 Imports and data of interest. Data is heights of 26 boys measured on nine occasions.
 
@@ -19,21 +19,161 @@ library(gridExtra) # multiplots
 data("Oxboys",package='nlme')
 head(Oxboys)
 ```
+
 ## 4.1 ***Multiple groups, one aesthetic***
+
 In longitudinal studies like this we can use a spaghetti plot to show the growth trajectory of each boy.
+
 ```{r}
 ggplot(Oxboys,aes(age,height,group=Subject))+
   geom_point()+
   geom_line()
 ```
+
 If a group is more than one variable, like an combination of multiple variables, then we can use `interaction(school_id,student_id)`.
 
 ## 4.2 ***Different groups on different layers***
-Let's say you want to use different levels of aggregation. One layer is individuals, another layer is average/summary of some sort. 
-So we will want to do the grouping aesthetic on the `geom_line()` layer to ensure that we only do that operation on that layer and not all layers.
+
+Let's say you want to use different levels of aggregation. One layer is individuals, another layer is average/summary of some sort. So we will want to do the grouping aesthetic on the `geom_line()` layer to ensure that we only do that operation on that layer and not all layers.
+
 ```{r}
 ggplot(Oxboys,aes(age,height))+
   geom_line(aes(group=Subject))+
   geom_smooth(method='lm',se=FALSE,linewidth=1.5,color='red')
 ```
 
+## 4.3 ***Overriding the default grouping***
+
+Some plots have a discrete x-axis, but you still want to draw lines *across* groups. This is the strategy used in interaction plots, profile plots, and parallel coordinate plots. The example from the book is to examine the following boxplots.
+
+```{r}
+ggplot(Oxboys,aes(Occasion,height))+
+  geom_boxplot()
+```
+
+`Occasion` is the discrete variable so we get one boxplot for each unique x value. To get the plot we want, we need to override the grouping to say we want one line per boy.
+
+```{r}
+ggplot(Oxboys,aes(Occasion,height))+
+  geom_boxplot()+
+  geom_line(aes(group=Subject),color='lightblue',alpha=0.5)
+```
+
+## 4.4 ***Matching aesthetics to graphic objects***
+
+Mapping the aesthetics of the individual observations to the aesthetics of the complete entity is becoming a clear issue to deal with. What happens when different aesthetics are mapped to a single geometric element?
+
+```{r}
+df <- data.frame(x=1:3,y=1:3, color=c(1,3,5))
+ggplot(df,aes(x,y,color=factor(color)))+
+  geom_line(aes(group=1),linewidth=2)+
+  geom_point(size=5)
+ggplot(df,aes(x,y,color=color))+
+  geom_line(aes(group=1),linewidth=2)+
+  geom_point(size=5)
+```
+
+Note that the second plot is a continuous color on the legend, but the plot is not smooth when you go from left to right and look at the color gradient. You can fix it by performing a linear interpolation by hand.
+
+```{r}
+xgrid <- with(df, seq(min(x), max(x), length = 50))
+interp <- data.frame(
+  x = xgrid,
+  y = approx(df$x, df$y, xout = xgrid)$y,
+  color = approx(df$x, df$color, xout = xgrid)$y  
+)
+ggplot(interp, aes(x, y, color = color)) + 
+  geom_line(linewidth = 2) +
+  geom_point(data = df, size = 5)
+```
+
+Note: For paths and lines, the line type must be constant over each individual line. There is no way in R to draw a line with varying line type.
+
+So the issue starts to become clear when we examine the next few sets of plots. So if we use a discrete variable ggplot2 will want to treat it as part of the group aesthetic, which in a bar and/or area plot works well because it will create a stacking behavior and split them into smaller chunks.
+
+```{r}
+ggplot(mpg,aes(class))+
+  geom_bar()
+ggplot(mpg,aes(class,fill=drv))+ # Discrete variable so auto grouping occured
+  geom_bar()
+```
+
+But if we try to map the fill aesthetic to a continuous variable (e.g. `hwy` ) in the same way it won't work. To show multiple colors, we will have to specify the grouping to override ggplot2.
+
+```{r}
+ggplot(mpg,aes(class,fill=hwy))+
+  geom_bar()
+# Generates warnings and nothing happens for the fill aesthetic
+ggplot(mpg,aes(class,fill=hwy,group=hwy))+
+  geom_bar()
+```
+
+Note: The colored plot is constructed by stacking many distinct bars on top of each other, each filled with a different shade based on the value of `hwy`. So the order is defined by the grouping variable (`hwy`). To control this, you'll need to create a factor with levels ordered as desired.
+
+## 4.5 Exercises
+
+1.  Draw a boxplot of `hwy` for each value of `cyl`, without turning `cyl` into a factor. What extra aesthetic do you need to set?
+
+    ```{r}
+    ggplot(mpg,aes(x=hwy,fill=cyl,group=cyl))+ # Need to add grouping
+      geom_bar()
+    ```
+
+2.  Modify the following plot so you that you get one boxplot per integer value of `displ`.
+
+    ```{r}
+    ggplot(mpg,aes(displ,cty,group=round(displ)))+
+      geom_boxplot()
+    ```
+
+3.  When illustrating the difference between mapping continuous and discrete colors to a line, the discrete example needed `aes(group = 1)`. Why? What happens if that is omitted? What's the difference between `aes(group=1)` and `aes(group=2)`? Why?
+
+    -   When omitted, we don't get a line that connects all these points. In fact, we get a message saying "geom_path: Each group consists of only one observation. Do you need to adjust the group aesthetic?" This happens because we included the color aesthetic and made each color include only one observation. In order to tell ggplot that all these points are in the same group, we need to include `aes(group = 1)`. It doesn't matter what group is equal to. As long as we include all the points in the same group, we should be able to connect the points with a line.
+
+    ```{r}
+    # First half of question
+    ggplot(df,aes(x,y,color=factor(color)))+
+      geom_line(linewidth=2)+ # Did not like it when removed grouping
+      geom_point(size=5)
+    ggplot(df,aes(x,y,color=color))+
+      geom_line(linewidth=2)+ # Did not care if grouped or not
+      geom_point(size=5)
+
+    # Second part of question
+    ggplot(df,aes(x,y,color=factor(color)))+
+      geom_line(aes(group=1),linewidth=2)+ # Change here
+      geom_point(size=5)
+    ggplot(df,aes(x,y,color=factor(color)))+
+      geom_line(aes(group=2),linewidth=2)+ # Changed here
+      geom_point(size=5)
+    # No difference when changing group=1 to group=2
+    ```
+
+4.  How many bars are in each of the following plots?
+
+```{r}
+ggplot(mpg, aes(drv)) + 
+  geom_bar(color='white')
+
+ggplot(mpg, aes(drv, fill = hwy, group = hwy)) + 
+  geom_bar(color='white')
+
+library(dplyr)  
+mpg2 <- mpg %>% arrange(hwy) %>% mutate(id = seq_along(hwy)) 
+ggplot(mpg2, aes(drv, fill = hwy, group = id)) + 
+  geom_bar(color='white')
+```
+
+5.  Install the babynames package. It contains data about the popularity of baby names in the US. Run the following code and fix the resulting graph. Why does this graph make us unhappy?
+
+    -   I think the connect the dots aspect sucks and can be removed by grouping by the year.
+
+    ```{r}
+    library(babynames)
+    hadley <- dplyr::filter(babynames, name == "Hadley")
+    ggplot(hadley, aes(year, n)) + 
+      geom_line()
+
+    ggplot(hadley,aes(year,n,group=year))+geom_line()
+
+    ```
