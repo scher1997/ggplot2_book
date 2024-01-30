@@ -16,7 +16,7 @@ library(tidyverse)
 library(gridExtra) # multiplots
 ```
 
-## 3.1 ***Basic plot types***
+## 3.1Basic plot types
 
 The two dimensional plots covered are: - `geom_area()` which draws an **area plot**, which is a line plot filled to the y-axis. - `geom_bar(stat='identity')` makes a **bar chart**. - `geom_line()` makes a **line plot**. The `group` aesthetic determines which observations are connected. `geom_path()` is the same but the order is based on the order the observations appear in the data. - `geom_point()` is the fan-favorite **scatterplot** - `geom_polygon()` draws polygons, which are filled paths. Each vertex is defined by a separate row in the data. - `geom_rect()`, `geom_tile()`, and `geom_raster()` draw rectangles. - `geom_text()` adds text to a plot. It requires a `label` aesthetic that provides the text to display.
 

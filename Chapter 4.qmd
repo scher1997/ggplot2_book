@@ -4,7 +4,7 @@ format: html
 editor: visual
 ---
 
-# Chapter 4 ***Collective geoms***
+# Chapter 4 Collective geoms
 
 Chapter on Collective geoms to gain familiarization. A *collective* geom displays multiple observations with one geometric object. The key player in this is the `group` aesthetic.
 
@@ -20,7 +20,7 @@ data("Oxboys",package='nlme')
 head(Oxboys)
 ```
 
-## 4.1 ***Multiple groups, one aesthetic***
+## 4.1 Multiple groups, one aesthetic
 
 In longitudinal studies like this we can use a spaghetti plot to show the growth trajectory of each boy.
 
@@ -32,7 +32,7 @@ ggplot(Oxboys,aes(age,height,group=Subject))+
 
 If a group is more than one variable, like an combination of multiple variables, then we can use `interaction(school_id,student_id)`.
 
-## 4.2 ***Different groups on different layers***
+## 4.2 Different groups on different layers
 
 Let's say you want to use different levels of aggregation. One layer is individuals, another layer is average/summary of some sort. So we will want to do the grouping aesthetic on the `geom_line()` layer to ensure that we only do that operation on that layer and not all layers.
 
@@ -42,7 +42,7 @@ ggplot(Oxboys,aes(age,height))+
   geom_smooth(method='lm',se=FALSE,linewidth=1.5,color='red')
 ```
 
-## 4.3 ***Overriding the default grouping***
+## 4.3 Overriding the default grouping
 
 Some plots have a discrete x-axis, but you still want to draw lines *across* groups. This is the strategy used in interaction plots, profile plots, and parallel coordinate plots. The example from the book is to examine the following boxplots.
 
@@ -59,7 +59,7 @@ ggplot(Oxboys,aes(Occasion,height))+
   geom_line(aes(group=Subject),color='lightblue',alpha=0.5)
 ```
 
-## 4.4 ***Matching aesthetics to graphic objects***
+## 4.4 Matching aesthetics to graphic objects
 
 Mapping the aesthetics of the individual observations to the aesthetics of the complete entity is becoming a clear issue to deal with. What happens when different aesthetics are mapped to a single geometric element?
 
