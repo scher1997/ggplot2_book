@@ -268,4 +268,53 @@ norm + geom_bin2d(bins = 10)
 norm + geom_hex()
 norm + geom_hex(bins = 10)
 ```
+- Estimate the 2d density with `stat_density2d()`, then display with a 3d surface
+```{r}
+norm+geom_density2d()
+```
+- Use a histogram with conditional distribution of y given x
+```{r}
+norm <- ggplot(df, aes(y)) + xlab(NULL) + ylab(NULL)
+norm + geom_histogram(aes(fill=x,group=x),binwidth=.1,position='fill')
+```
+## 5.6 Statistical summaries
+Notice that some geoms like `geom_histogram()` are a `geom_bar()` with a statistical tranformation applied first. So far it's been 1 to 1 where the transformation is associated with a geom, but there's functionality to using other transformations. `stat_summary_bin()` and `stat_summary_2d()` are two summarizing statistical transformations.
+```{r}
+ggplot(diamonds,aes(color))+
+  geom_bar() # Will do the count
+
+ggplot(diamonds,aes(color,price))+
+  geom_bar(stat='summary_bin',fun=mean) # Set bar height based on the mean of the y group (price)
+```
+```{r}
+ggplot(diamonds,aes(table,depth))+
+  geom_bin2d(binwidth=1,na.rm = TRUE)+
+  xlim(50,70)+
+  ylim(50,70)
+
+ggplot(diamonds,aes(table,depth,z=price))+
+  geom_raster(binwidth=1,stat='summary_2d',fun=mean,na.rm=TRUE)+ # Use mean of price
+  xlim(50,70)+
+  ylim(50,70)
+```
+## 5.7 Surfaces
+The two types of geoms examined so far are:
+- Simple geoms that have a one-to-one correspondence between observations and physical elements in the geom
+- Statistical geoms that produce some sort of summary of the raw data
+
+But there are other cases such as 3d surface modeling where ggplot is useful. The `faithfuld` data is good for this because it has 3 dimensions which make sense for a contour plot to show. 
+```{r}
+ggplot(faithfuld,aes(eruptions,waiting))+
+  geom_contour(aes(z=density,color=after_stat(level))) # Get levels to make it discrete(ish)
+
+ggplot(faithfuld, aes(eruptions, waiting)) + 
+  geom_raster(aes(fill = density))
+```
+```{r}
+# Bubble plots work better with fewer observations
+small <- faithfuld[seq(1, nrow(faithfuld), by = 10), ]
+ggplot(small, aes(eruptions, waiting)) + 
+  geom_point(aes(size = density), alpha = 1/3) + 
+  scale_size_area()
+```
 

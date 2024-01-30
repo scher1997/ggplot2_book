@@ -4,7 +4,7 @@ format: html
 editor: visual
 ---
 
-# Chapter 2 ***First steps***
+# Chapter 2 First steps 
 
 Mostly an introduction chapter.
 
@@ -301,7 +301,7 @@ p + annotate("text", x = 25, y = 300, label = lm_eqn(df), parse = TRUE)
 
 ```
 
-### 2.6.2 ***Boxplots and Jittered Points***
+### 2.6.2 Boxplots and Jittered Points
 
 When dealing with categorical variables and continuous variables mixed, then boxplots or adding jitter (noise) to a scatterplot are a few useful methods.
 
@@ -317,7 +317,7 @@ p3 <- ggplot(mpg,aes(drv,hwy))+
 
 grid.arrange(p1,p2,p3)
 ```
-### 2.6.3 ***Histograms and frequency polygons***
+### 2.6.3 Histograms and frequency polygons
 If we want to show the distribution of a continuous variable. Note that we can modify the number of bins using `binwidth = ` or `bins = 30` (default)
 ```{r}
 ggplot(mpg,aes(hwy))+geom_histogram()
@@ -333,7 +333,7 @@ sturges_breaks = pretty(range(mpg$displ),n=nclass.Sturges(mpg$displ),min.n=1)
 ggplot(mpg,aes(displ,color=drv))+geom_freqpoly(breaks=sturges_breaks)
 ```
 
-### 2.6.4 ***Bar charts***
+### 2.6.4 Bar charts
 The discrete analogue of the histogram is the bar chart which is a simple switch to `geom_bar()`, but shows the importance of knowing your variable types. The `geom_bar()` is confusing because it counts how many observations there are, so it expects unsummarized data (similar to `summarize()` in *dplyr*)
 ```{r}
 ggplot(mpg,aes(manufacturer))+geom_bar() # Does a count
@@ -347,7 +347,7 @@ mpg |>
   geom_bar(stat='identity')
 
 ```
-### 2.6.5 ***Time series with line and path plots***
+### 2.6.5 Time series with line and path plots
 The main two types of plots for time series are line plots `geom_line()` and path plots `geom_path()`
 
 We will use the `economics` dataset since the `mpg` dataset only has two values for the *years* variable. 
@@ -432,7 +432,7 @@ ggplot(data = mpg,aes(x = hwy)) +
   facet_grid(cyl ~ trans)
 
 ```
-## 2.7 ***Modifying the axes***
+## 2.7 Modifying the axes
 Just an intro but using `xlab()` and `ylab()` are the most popular ones
 ```{r}
 ggplot(mpg, aes(cty, hwy)) +
@@ -461,7 +461,7 @@ ggplot(mpg,aes(drv,hwy))+
   geom_jitter(width=0.2,na.rm=TRUE)+
   ylim(NA,30)
 ```
-## 2.8 ***Ouput***
+## 2.8 Ouput
 We can create a plot object, manipulate it (imagine a ``base'' plot), and choose when to show it, as well as save a plot to a file
 ```{r}
 p <- ggplot(mpg, aes(displ, hwy, colour = factor(cyl))) +
