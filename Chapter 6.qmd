@@ -1,0 +1,64 @@
+---
+title: "Chapter 6"
+format: html
+editor: visual
+---
+
+# Chapter 6 Maps
+
+Imports
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(gridExtra) # multiplots
+library(ggtext)
+library(tidyverse)
+```
+
+## 6.1 Polygon maps
+`geom_polygon()` is the the most straight forward approach to draw boundaries
+```{r}
+mi_counties <- map_data("county", "michigan") |> 
+  dplyr::select(lon=long,lat,group,id=subregion)
+head(mi_counties)
+```
+`lat` and `long` specify the latitude and longitude of a vertex, `id` the name of the region, and `group` for contiguous areas within a region. 
+```{r}
+# Example of geom_point(), kinda works but not ideal
+ggplot(mi_counties, aes(lon, lat)) + 
+  geom_point(size = .25, show.legend = FALSE) +
+  coord_quickmap()
+
+ggplot(mi_counties, aes(lon, lat, group = group)) +
+  geom_polygon(fill = "white", colour = "grey50") + 
+  coord_quickmap()
+```
+## 6.2 Simple features maps 
+Typically "longitude-latitude" data is not used in real-world mapping. Instead vector data for maps is encoded using the "simple features" standard. The `sf` package in R gives two main function, `geom_sf()` and `coord_sf()`, which can be used within ggplot. 
+
+The `ozmaps` package, which provides maps for Australian state boundaries, local government areas, electoral boundaries, and so on will be used. 
+```{r}
+library(ozmaps)
+library(sf)
+
+oz_states <- ozmaps::ozmap_states
+oz_states
+```
+The most important column is `geometry`, which specifies the spatial geometry for each of the states and territories. Each element in the `geometry` column is a multipolygon object which contains data specifying the verticies of one or more polygons that demark the border of a region. Given data with this format, `geom_sf()` and `coord_sf()` will know how to draw a map without specifying any parameters or declaring aesthetics.
+```{r}
+ggplot(oz_states) +
+  geom_sf() + # Creates the shape geometry by finding the data in the sf object
+  coord_sf() # Creates the map projection
+```
+### 6.2.1 Layered maps
+```{r}
+oz_states <- ozmaps::ozmap_states %>% filter(NAME != "Other Territories")
+oz_votes <- rmapshaper::ms_simplify(ozmaps::abs_ced)
+?rmapshaper::ms_simplify()
+ggplot() + 
+  geom_sf(data = oz_states, mapping = aes(fill = NAME), show.legend = FALSE) +
+  geom_sf(data = oz_votes, fill = NA) + 
+  coord_sf()
+```
+
