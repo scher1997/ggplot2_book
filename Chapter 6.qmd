@@ -2,6 +2,8 @@
 title: "Chapter 6"
 format: html
 editor: visual
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Chapter 6 Maps
@@ -52,13 +54,34 @@ ggplot(oz_states) +
   coord_sf() # Creates the map projection
 ```
 ### 6.2.1 Layered maps
+Technically we are overlaying one map over the other here. 
 ```{r}
-oz_states <- ozmaps::ozmap_states %>% filter(NAME != "Other Territories")
-oz_votes <- rmapshaper::ms_simplify(ozmaps::abs_ced)
-?rmapshaper::ms_simplify()
-ggplot() + 
-  geom_sf(data = oz_states, mapping = aes(fill = NAME), show.legend = FALSE) +
-  geom_sf(data = oz_votes, fill = NA) + 
+chile_country_boundary <- read_sf("C:/Users/xc_ma/Documents/Coding/R/Repo/ggplot2_book/boundary.shp")
+chile_built_areas <- read_sf("C:/Users/xc_ma/Documents/Coding/R/Repo/ggplot2_book/columbia_iscgm_chile_2008_builtupa.shp") # Can't get this one to visualize right. It's supposed to include "all details" of chile
+chile_airports <- read_sf("C:/Users/xc_ma/Documents/Coding/R/Repo/ggplot2_book/columbia_iscgm_chile_2008_aerofacp.shp")
+
+ggplot(chile_country_boundary)+
+  geom_sf(col='black',fill='white')+
+  geom_sf(data=chile_airports,col='green') +
   coord_sf()
+```
+### 6.2.2 Labelled maps
+Labeling a map is supported by `geom_sf_label()` and `geom_sf_text()`
+```{r}
+# Filter electorates in the Sydney metropolitan region
+sydney_map <- ozmaps::abs_ced %>% filter(NAME %in% c(
+  "Sydney", "Wentworth", "Warringah", "Kingsford Smith", "Grayndler", "Lowe", 
+  "North Sydney", "Barton", "Bradfield", "Banks", "Blaxland", "Reid", 
+  "Watson", "Fowler", "Werriwa", "Prospect", "Parramatta", "Bennelong", 
+  "Mackellar", "Greenway", "Mitchell", "Chifley", "McMahon"
+))
+
+# Draw the electoral map of Sydney
+ggplot(sydney_map) + 
+  geom_sf(aes(fill = NAME), show.legend = FALSE) + 
+  coord_sf(xlim = c(150.97, 151.3), ylim = c(-33.98, -33.79)) + 
+  geom_sf_label(aes(label = NAME), label.padding = unit(1, "mm"))
+#> Warning in st_point_on_surface.sfc(sf::st_zm(x)): st_point_on_surface may not
+#> give correct results for longitude/latitude data
 ```
 
