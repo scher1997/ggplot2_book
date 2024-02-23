@@ -84,4 +84,83 @@ ggplot(sydney_map) +
 #> Warning in st_point_on_surface.sfc(sf::st_zm(x)): st_point_on_surface may not
 #> give correct results for longitude/latitude data
 ```
+### 6.2.3 Adding other geoms
+```{r}
+oz_capitals <- tibble::tribble( 
+  ~city,           ~lat,     ~lon,
+  "Sydney",    -33.8688, 151.2093,  
+  "Melbourne", -37.8136, 144.9631, 
+  "Brisbane",  -27.4698, 153.0251, 
+  "Adelaide",  -34.9285, 138.6007, 
+  "Perth",     -31.9505, 115.8605, 
+  "Hobart",    -42.8821, 147.3272, 
+  "Canberra",  -35.2809, 149.1300, 
+  "Darwin",    -12.4634, 130.8456, 
+)
+
+ggplot() + 
+  geom_sf(data = oz_states, colour = "black", fill = NA) + 
+  geom_point(data = oz_capitals, mapping = aes(x = lon, y = lat), colour = "red") + 
+  coord_sf()
+```
+## 6.3 Map projections
+There's different coordinate systems that might change the parameters of the map projection being examined. 
+```{r}
+st_crs(oz_states) # EPSG code 4283
+```
+`coord_sf()` controls the *coordinate reference system*, which ensures every subsequent layer in the plot uses the same projection.
+```{r}
+ggplot(oz_states)+geom_sf()
+ggplot(oz_states)+geom_sf() + coord_sf(crs=st_crs(3112))
+```
+## 6.4 Working with sf data
+You can manipulate the simple features data. 
+```{r}
+# Grab a subset
+edenmonaro <- ozmaps::abs_ced %>% filter(NAME == "Eden-Monaro")
+
+p <- ggplot(edenmonaro) + geom_sf()
+p + coord_sf(xlim = c(147.75, 150.25), ylim = c(-37.5, -34.5)) 
+p + coord_sf(xlim = c(150, 150.25), ylim = c(-36.3, -36)) 
+```
+
+This plot has two distinct polygons since the island requires it's own. Creating an `MULTIPOLYGON` geometry.
+```{r}
+# grab the geometry object
+edenmonaro <- edenmonaro |> pull(geometry)
+# Helper function examples
+st_geometry_type(edenmonaro) # Geometry type
+st_dimension(edenmonaro) # Number of dimensions (2D is XY and 3D is XYZ)
+st_bbox(edenmonaro) # Bounding box
+st_crs(edenmonaro) # Coordinate reference system
+```
+
+Right now `edenmonaro` is defined by the `MULTIPOLYGON` geometry with one feature. This can be "cast" into two distinct `POLYGON` geometries using `st_cast()`. 
+```{r}
+st_cast(edenmonaro,'POLYGON')
+```
+
+This is useful when there is a large number of polygons. For example the Dawson electorate which contains 69 islands shown below as a single `MULTIPOLYGON`. 
+```{r}
+dawson <- ozmaps::abs_ced %>% 
+  filter(NAME == "Dawson") %>% 
+  pull(geometry)
+dawson
+#> Geometry set for 1 feature 
+#> Geometry type: MULTIPOLYGON
+#> MULTIPOLYGON (((148 -19.9, 148 -19.8, 148 -19.8...
+
+ggplot(dawson) + 
+  geom_sf() +
+  coord_sf()
+```
+Now if the desired plot is to map only the islands...
+```{r}
+dawson <- st_cast(dawson,'POLYGON')
+which.max(st_area(dawson)) # The largest polygon
+ggplot(dawson[-which.max(st_area(dawson))]) +  # Remove largest polygon  
+  geom_sf() + 
+  coord_sf()
+```
+
 
