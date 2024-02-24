@@ -162,5 +162,41 @@ ggplot(dawson[-which.max(st_area(dawson))]) +  # Remove largest polygon
   geom_sf() + 
   coord_sf()
 ```
+## 6.5 Raster maps
+*raster data* is another type of spatial data source but instead of using geometrical foundations it's instead a form of images. 
+```{r}
+library(stars)
+#> Loading required package: abind
+# https://github.com/hadley/ggplot2-book/blob/main/IDE00422.202001072100.tif
+sat_vis <- read_stars(
+  "IDE00422.202001072100.tif", 
+  RasterIO = list(nBufXSize = 600, nBufYSize = 600)
+)
+```
+
+```{r}
+ggplot() + 
+  geom_stars(data = sat_vis) + 
+  coord_equal()
+```
+But the data for `sat_vis` contains three bands, and the plot shown is for the first band only. So using ggplot...
+```{r}
+ggplot()+
+  geom_stars(data=sat_vis,show.legend=FALSE) +
+  facet_wrap(~band)+
+  coord_equal() +
+  scale_fill_gradient(low='black',high='white')
+```
+Using image data is restrictive because it creates limitations such as the trying to point out where the relevant landmasses are. For example an overlay of the Australia map that has been referenced previously in this chapter. There's also the coordinate reference system adjustment for the projections that must occur too. Luckily there's ggplot and company. 
+```{r}
+oz_states <- st_transform(oz_states, crs = st_crs(sat_vis)) # Uses sat_vis CRS
+
+ggplot() + 
+  geom_stars(data = sat_vis, show.legend = FALSE) +
+  geom_sf(data = oz_states, fill = NA, color = "white") + 
+  coord_sf() + 
+  theme_void() + 
+  scale_fill_gradient(low = "black", high = "white")
+```
 
 
