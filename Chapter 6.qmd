@@ -199,4 +199,26 @@ ggplot() +
   scale_fill_gradient(low = "black", high = "white")
 ```
 
+## 6.6 Other interesting things
 
+### 6.6.1 Interactive maps
+`tmap` - thematic maps in R is another good way to plot spatial data which has similar syntax to `ggplot2`
+A quick example of the capabilities of tmap. The most interesting being the interactivity which is controlled using `tmap_mode('view')` for interactive or `tmap_mode('plot')` for just a static image. To toggle between the two use `ttm()`
+```{r}
+library(tmap)
+data(World,metro,rivers,land)
+tmap_mode('view') # or tmap_mode('plot') for static image
+tm_shape(land) +
+  tm_raster('elevation',palette = terrain.colors(10),legend.show = FALSE) +
+tm_shape(World)+
+  tm_borders('black',lwd=0.5)+
+  tm_text('iso_a3',size='AREA')+
+tm_shape(metro)+
+  tm_symbols(col='red',size='pop2020',scale=0.5)+
+tm_legend(show=FALSE)
+```
+What's also cool is the interactive map can be saved as a Web Page.
+
+## 6.7 Data Sources
+Look into https://gadm.org/ for Global Administrative Areas (GADM) which includes boundary shapefiles.
+https://www.openstreetmap.org/ is also a source for maps. Not sure if the file tipe will work...
