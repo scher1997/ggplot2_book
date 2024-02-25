@@ -1,0 +1,77 @@
+---
+title: "Chapter 7"
+format: html
+editor: visual
+---
+
+# Chapter 7 Networks
+Have to use the `ggraph` (https://ggraph.data-imaginist.com/) package for network visualization. `ggtree` (https://github.com/YuLab-SMU/ggtree) and `ggdendro` (https://andrie.github.io/ggdendro/) are used for tree visualization. 
+
+## 7.1 What is network data?
+A network/graph $\mathcal{G}(\mathcal{V},\mathcal{E})$ consists of nodes/vertices $\mathcal{V}$ and their relations defined through edges/links $\mathcal{E}$. 
+
+### 7.1.1 A tidy network manipulation API
+`tidygraph` works well with `dplyr`.
+```{r}
+library(tidygraph)
+
+graph <- play_erdos_renyi(n = 10, p = 0.2) |> 
+  activate(nodes) |> # informs tidygraph on which part of the network to work on
+  mutate(class = sample(letters[1:4],n(),replace=TRUE)) |> 
+  activate(edges) |> 
+  arrange(.N()$class[from]) #.N() accesses node data of the current graph (.E() for edges and .G() for the whole graph)
+graph
+```
+### 7.1.2 Conversion
+`tidygraph` understands most of the different classes used in R for network data converted with `as_tbl_graph()`. 
+```{r}
+library(ggraph)
+data(highschool,package='ggraph')
+head(highschool)
+hs_graph <- as_tbl_graph(highschool,directed = FALSE)
+hs_graph
+luv_clust <- hclust(dist(luv_colours[,1:3]))
+luv_graph <- as_tbl_graph(luv_clust)
+luv_graph
+```
+### 7.1.3 Algorithms
+More info can be found at https://tidygraph.data-imaginist.com 
+```{r}
+graph |> 
+  activate(nodes) |> 
+  mutate(centrality = centrality_pagerank()) |> 
+  arrange(desc(centrality))
+```
+## 7.2 Visualizing networks
+`ggraph` builds on top of `tidygraph` and `ggplot2`. 
+
+### 7.2.1 Setting up the visualization
+Slightly different from a `ggplot()` call, the `ggraph()` is used to initialize a graph. 
+The first argument is the data, the second argument is a layout function, and any further arguments will be passed on to that function. 
+Visit this link https://ggraph.data-imaginist.com/articles/Layouts.html to look at layouts that can be used. 
+
+#### 7.2.1.1 Specifying a layout
+The layout argument can be a string or a function. 
+```{r}
+library(ggraph)
+ggraph(hs_graph) +
+  geom_edge_link() +  # Connect nodes
+  geom_node_point() # Draw points at nodes
+```
+```{r}
+ggraph(hs_graph,layout='drl')+
+  geom_edge_link()+
+  geom_node_point()
+```
+There are ways to show different weights applied to the edges as well. 
+```{r}
+set.seed(42)
+hs_graph <- hs_graph |> 
+  activate(edges) |> 
+  mutate(edge_weights = runif(n())) # Randomly assign weights uniformly to edges
+ggraph(hs_graph,layout='stress',weights=edge_weights) +
+  geom_edge_link(aes(alpha=edge_weights))+
+  geom_node_point()+
+  scale_edge_alpha_identity()
+```
+
