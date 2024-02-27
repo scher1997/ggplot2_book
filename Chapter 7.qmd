@@ -74,4 +74,35 @@ ggraph(hs_graph,layout='stress',weights=edge_weights) +
   geom_node_point()+
   scale_edge_alpha_identity()
 ```
+#### 7.2.1.2 Circularity
+Keep the edge relations but change the node positions
+```{r}
+ggraph(luv_graph,layout='dendrogram',circular=TRUE)+ # Dendrogram is a tree like split, circular puts nodes in a circle
+  geom_edge_link()+
+  coord_fixed() # Prevents wide ellipsoid and instead provides a circle. 
 
+```
+```{r}
+ggraph(luv_graph, layout = "dendrogram") + 
+  geom_edge_link() + 
+  coord_polar() + # Bends edges
+  scale_y_reverse()
+```
+### 7.2.2 Drawing nodes
+`geom_node_point()` behaves like `geom_point()` but contains additional features such as the `x` and `y` positioning, attributes shared with other nodes/edges, access to a `filter` aesthetic that allows "turning off" some nodes, and tidygraph algorithms may be accessible within `aes()`. 
+```{r}
+ggraph(hs_graph, layout = "stress") + 
+  geom_edge_link() + 
+  geom_node_point(
+    aes(filter = centrality_degree() > 2, # Nodes with more than 2 connections
+        colour = centrality_power()), # Color by power centrality
+    size = 4
+  )
+```
+To draw a treemap use `geom_node_tile()`.
+```{r}
+ggraph(luv_graph, layout = "treemap") + 
+  geom_node_tile(aes(fill = depth)) +
+  scale_fill_viridis()
+```
+### 7..2.3 Drawing edges
