@@ -5,13 +5,17 @@ editor: visual
 ---
 
 # Chapter 7 Networks
-Have to use the `ggraph` (https://ggraph.data-imaginist.com/) package for network visualization. `ggtree` (https://github.com/YuLab-SMU/ggtree) and `ggdendro` (https://andrie.github.io/ggdendro/) are used for tree visualization. 
+
+Have to use the `ggraph` (https://ggraph.data-imaginist.com/) package for network visualization. `ggtree` (https://github.com/YuLab-SMU/ggtree) and `ggdendro` (https://andrie.github.io/ggdendro/) are used for tree visualization.
 
 ## 7.1 What is network data?
-A network/graph $\mathcal{G}(\mathcal{V},\mathcal{E})$ consists of nodes/vertices $\mathcal{V}$ and their relations defined through edges/links $\mathcal{E}$. 
+
+A network/graph $\mathcal{G}(\mathcal{V},\mathcal{E})$ consists of nodes/vertices $\mathcal{V}$ and their relations defined through edges/links $\mathcal{E}$.
 
 ### 7.1.1 A tidy network manipulation API
+
 `tidygraph` works well with `dplyr`.
+
 ```{r}
 library(tidygraph)
 
@@ -22,8 +26,11 @@ graph <- play_erdos_renyi(n = 10, p = 0.2) |>
   arrange(.N()$class[from]) #.N() accesses node data of the current graph (.E() for edges and .G() for the whole graph)
 graph
 ```
+
 ### 7.1.2 Conversion
-`tidygraph` understands most of the different classes used in R for network data converted with `as_tbl_graph()`. 
+
+`tidygraph` understands most of the different classes used in R for network data converted with `as_tbl_graph()`.
+
 ```{r}
 library(ggraph)
 data(highschool,package='ggraph')
@@ -34,36 +41,45 @@ luv_clust <- hclust(dist(luv_colours[,1:3]))
 luv_graph <- as_tbl_graph(luv_clust)
 luv_graph
 ```
+
 ### 7.1.3 Algorithms
-More info can be found at https://tidygraph.data-imaginist.com 
+
+More info can be found at https://tidygraph.data-imaginist.com
+
 ```{r}
 graph |> 
   activate(nodes) |> 
   mutate(centrality = centrality_pagerank()) |> 
   arrange(desc(centrality))
 ```
+
 ## 7.2 Visualizing networks
-`ggraph` builds on top of `tidygraph` and `ggplot2`. 
+
+`ggraph` builds on top of `tidygraph` and `ggplot2`.
 
 ### 7.2.1 Setting up the visualization
-Slightly different from a `ggplot()` call, the `ggraph()` is used to initialize a graph. 
-The first argument is the data, the second argument is a layout function, and any further arguments will be passed on to that function. 
-Visit this link https://ggraph.data-imaginist.com/articles/Layouts.html to look at layouts that can be used. 
+
+Slightly different from a `ggplot()` call, the `ggraph()` is used to initialize a graph. The first argument is the data, the second argument is a layout function, and any further arguments will be passed on to that function. Visit this link https://ggraph.data-imaginist.com/articles/Layouts.html to look at layouts that can be used.
 
 #### 7.2.1.1 Specifying a layout
-The layout argument can be a string or a function. 
+
+The layout argument can be a string or a function.
+
 ```{r}
 library(ggraph)
 ggraph(hs_graph) +
   geom_edge_link() +  # Connect nodes
   geom_node_point() # Draw points at nodes
 ```
+
 ```{r}
 ggraph(hs_graph,layout='drl')+
   geom_edge_link()+
   geom_node_point()
 ```
-There are ways to show different weights applied to the edges as well. 
+
+There are ways to show different weights applied to the edges as well.
+
 ```{r}
 set.seed(42)
 hs_graph <- hs_graph |> 
@@ -74,22 +90,29 @@ ggraph(hs_graph,layout='stress',weights=edge_weights) +
   geom_node_point()+
   scale_edge_alpha_identity()
 ```
+
 #### 7.2.1.2 Circularity
+
 Keep the edge relations but change the node positions
+
 ```{r}
 ggraph(luv_graph,layout='dendrogram',circular=TRUE)+ # Dendrogram is a tree like split, circular puts nodes in a circle
   geom_edge_link()+
   coord_fixed() # Prevents wide ellipsoid and instead provides a circle. 
 
 ```
+
 ```{r}
 ggraph(luv_graph, layout = "dendrogram") + 
   geom_edge_link() + 
   coord_polar() + # Bends edges
   scale_y_reverse()
 ```
+
 ### 7.2.2 Drawing nodes
-`geom_node_point()` behaves like `geom_point()` but contains additional features such as the `x` and `y` positioning, attributes shared with other nodes/edges, access to a `filter` aesthetic that allows "turning off" some nodes, and tidygraph algorithms may be accessible within `aes()`. 
+
+`geom_node_point()` behaves like `geom_point()` but contains additional features such as the `x` and `y` positioning, attributes shared with other nodes/edges, access to a `filter` aesthetic that allows "turning off" some nodes, and tidygraph algorithms may be accessible within `aes()`.
+
 ```{r}
 ggraph(hs_graph, layout = "stress") + 
   geom_edge_link() + 
@@ -99,10 +122,123 @@ ggraph(hs_graph, layout = "stress") +
     size = 4
   )
 ```
+
 To draw a treemap use `geom_node_tile()`.
+
 ```{r}
 ggraph(luv_graph, layout = "treemap") + 
   geom_node_tile(aes(fill = depth)) +
   scale_fill_viridis()
 ```
+
 ### 7..2.3 Drawing edges
+
+Edges are more complicated than nodes, since there's more way to connect nodes. See https://ggraph.data-imaginist.com/articles/Edges.html for an overview.
+
+```{r}
+ggraph(graph,layout='stress')+
+  geom_edge_link(aes(alpha=after_stat(index))) # Add alpha/gradient that shows flow
+```
+
+For lots of edges, interpolation between two nodes is as option.
+
+```{r}
+ggraph(graph,layout='stress')+
+  geom_edge_link2(aes(color=node.class), width=2,lineend='round')
+
+```
+
+To curve the edges
+
+```{r}
+ggraph(hs_graph, layout = "stress") + 
+  geom_edge_fan()
+```
+
+To make them parallel lines
+
+```{r}
+ggraph(hs_graph, layout = "stress") + 
+  geom_edge_parallel()
+```
+
+In the case of dendrograms, the elbow edge is usually preferred. `geom_edge_bend()` and `geom_edge_diagonal()` also work.
+
+```{r}
+ggraph(luv_graph,layout='dendrogram',height=height)+
+  geom_edge_elbow()
+```
+
+#### 7.2.3.1 Clipping edges around the nodes
+
+A common issue when using arrows on edges to show direction is the node will overlap the edge since the arrow runs to the center of the node. See below.
+
+```{r}
+ggraph(graph,layout = 'stress') +
+  geom_edge_link(arrow=arrow())+
+  geom_node_point(aes(color=class),size=8)
+```
+
+To fix, stop the edges before they reach the node by using the `start_cap` and `end_cap` aesthetics.
+
+```{r}
+ggraph(graph,layout='stress')+
+  geom_edge_link(arrow=arrow(),start_cap=circle(5,'mm'),end_cap=circle(5,'mm'))+
+  geom_node_point(aes(color=class),size=8)
+```
+
+#### 7.2.3.2 An edge is not always a line
+
+Nodes and edges are abstract concepts. Sometimes its surprising what can be considered a network. An example if a matrix plot which show nodes implicitly by row and column position and edges as point/tiles.
+
+```{r}
+ggraph(hs_graph,layout='matrix',sort.by=node_rank_traveller())+
+  geom_edge_point()
+```
+
+### 7.2.4 Faceting
+
+Works similar as tabular data, but instead has `facet_nodes()` and `facet_edges()`.
+
+In the **ggraph** package, both **facet_edges** and **facet_nodes** are used for creating small multiples (facets) in network visualizations. The differences are:
+
+1.  **Facet Edges (facet_edges)**:
+    -   **Purpose**: Facets the graph based on **edge attributes**.
+    -   **Functionality**:
+        -   It allows you to create separate panels for different subsets of edges in your graph.
+        -   You can specify an edge attribute (such as `f` in your example) to determine how the graph is split into facets.
+        -   However, it **plots all nodes**, including isolated ones, in each facet.
+    -   **Use Case**:
+        -   Useful when you want to explore relationships between different edge attributes (e.g., different types of connections) while keeping all nodes visible.
+        -   Not suitable if you want to remove isolated nodes from each facet.
+2.  **Facet Nodes (facet_nodes)**:
+    -   **Purpose**: Facets the graph based on **node attributes**.
+    -   **Functionality**:
+        -   It creates small multiples by grouping nodes based on a specified node attribute.
+        -   Only nodes that are effectively connected by edges within each facet are displayed.
+        -   Isolated nodes (those not connected to any edges in a facet) are automatically excluded.
+    -   **Use Case**:
+        -   Ideal when you want to focus on specific subsets of nodes and their associated edges.
+        -   Ensures that only relevant nodes are shown in each facet, improving clarity.
+
+In summary, if the interest is in exploring edge attributes and don't mind showing all nodes (including isolated ones), use **facet_edges**. However, if the desire is to display only connected nodes within each facet, **facet_nodes** is the better choice.
+
+```{r}
+ggraph(hs_graph, layout = "stress") + 
+  geom_edge_link() + 
+  geom_node_point() + 
+  facet_edges(~year)
+```
+
+Can also perform tidygraph algorithms within the faceting e.g. the result of groupings from a cluster algorithm.
+
+```{r}
+ggraph(hs_graph, layout = "stress") + 
+  geom_edge_link() + 
+  geom_node_point() + 
+  facet_nodes(~group_spinglass()) # Clustering function
+```
+
+## 7.3 Links
+https://tidygraph.data-imaginist.com/ https://ggraph.data-imaginist.com/
+https://ggraph.data-imaginist.com/
