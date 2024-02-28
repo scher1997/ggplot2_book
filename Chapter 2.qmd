@@ -14,6 +14,7 @@ Imports
 #| echo: false
 library(tidyverse)
 library(gridExtra) # For some multi plots I want to show
+
 ```
 
 ## 2.2 Fuel Economy Data
@@ -87,7 +88,8 @@ Key components to every ggplot figure
 
 ```{r}
 ggplot(mpg,aes(x=displ,y=hwy,color=cyl)) + # Added a little color
-  geom_point()
+  geom_point()+
+  scale_color_viridis()
 ```
 
 ### 2.3.1 Exercises
