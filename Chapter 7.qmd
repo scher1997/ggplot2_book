@@ -5,6 +5,13 @@ editor: visual
 ---
 
 # Chapter 7 Networks
+Imports
+```{r}
+library(tidyverse)
+library(tidygraph)
+library(ggraph)
+```
+
 
 Have to use the `ggraph` (https://ggraph.data-imaginist.com/) package for network visualization. `ggtree` (https://github.com/YuLab-SMU/ggtree) and `ggdendro` (https://andrie.github.io/ggdendro/) are used for tree visualization.
 
@@ -17,8 +24,6 @@ A network/graph $\mathcal{G}(\mathcal{V},\mathcal{E})$ consists of nodes/vertice
 `tidygraph` works well with `dplyr`.
 
 ```{r}
-library(tidygraph)
-
 graph <- play_erdos_renyi(n = 10, p = 0.2) |> 
   activate(nodes) |> # informs tidygraph on which part of the network to work on
   mutate(class = sample(letters[1:4],n(),replace=TRUE)) |> 
@@ -32,11 +37,11 @@ graph
 `tidygraph` understands most of the different classes used in R for network data converted with `as_tbl_graph()`.
 
 ```{r}
-library(ggraph)
 data(highschool,package='ggraph')
 head(highschool)
 hs_graph <- as_tbl_graph(highschool,directed = FALSE)
 hs_graph
+
 luv_clust <- hclust(dist(luv_colours[,1:3]))
 luv_graph <- as_tbl_graph(luv_clust)
 luv_graph
@@ -242,3 +247,171 @@ ggraph(hs_graph, layout = "stress") +
 ## 7.3 Links
 https://tidygraph.data-imaginist.com/ https://ggraph.data-imaginist.com/
 https://ggraph.data-imaginist.com/
+
+## 7.4 Star Wars example
+```{r}
+url <- "https://raw.githubusercontent.com/evelinag/star-wars-network-data/master/starwars-full-interactions.json"
+
+starwars <- jsonlite::read_json(url, simplifyVector = TRUE)
+sw_nodes <- starwars$nodes |> 
+  as_tibble() |> 
+  mutate(id=row_number()) |> 
+  relocate(id) |> 
+  rename(firstname=name,name=id)
+
+sw_edges <- starwars$links |> 
+  as_tibble() |> 
+  mutate(source = source + 1, target = target + 1) |> # Tidygraph won't take 0
+  rename(from=source,to=target,weightage=value) 
+  
+sw_graph <- tbl_graph(
+  nodes = sw_nodes,
+  edges = sw_edges,
+  node_key = 'name',
+  directed = FALSE
+)
+```
+Finding groups within Star Wars Characters
+```{r}
+sw_graph <- sw_graph |> 
+  # Creating groups with group_leading_eigen()
+  activate(nodes) |> 
+  mutate(col_var = group_leading_eigen())
+
+sw_graph |> 
+  activate(nodes) |> 
+  as_tibble() |> 
+  select(col_var, firstname, value) |> 
+  mutate(
+    Group = paste0("Gp. ", col_var),
+    firstname = snakecase::to_title_case(firstname)
+  ) |> 
+  group_by(Group) |>
+  arrange(desc(value)) |> 
+  summarise(Characters = paste(firstname, collapse = ", ")) |> 
+  gt::gt() |> 
+  gtExtras::gt_theme_espn()
+```
+
+
+Visualize
+```{r}
+sw_graph |> 
+  
+  activate(nodes) |> 
+  filter(value > 40) |> 
+  
+  ggraph(layout = "stress") +
+    geom_edge_link(aes(width = weightage),alpha = 0.5,color = "grey") +
+    geom_node_point(aes(size = value, colour = as.factor(col_var))
+    ) +
+    geom_node_text(
+      mapping = aes(label = firstname),
+      check_overlap = TRUE,
+      repel = TRUE
+    ) +
+    scale_size_area(max_size = 10) +
+    scale_colour_brewer(palette = "Dark2") +
+    theme_void() + 
+    theme(legend.position = "none")
+```
+```{r}
+sw_graph_fun <- function(my_layout){
+  sw_graph |>
+  activate(nodes) |>
+  filter(value > 40) |> 
+  ggraph(layout = my_layout) +
+  geom_edge_link(
+    mapping = aes(width = weightage),
+    alpha = 0.5,
+    color = "grey"
+  ) +
+  geom_node_point(mapping = aes(size = value, 
+                                col = as.factor(col_var))) +
+  geom_node_text(
+    mapping = aes(label = firstname),
+    check_overlap = TRUE, 
+    repel = TRUE,
+    fontface = "bold"
+  ) +
+  labs(title = paste0("layout = \"", my_layout, "\"")) +
+  scale_size_area(max_size = 10) +
+  theme_void() +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(
+      face = "bold",
+      family = "mono",
+      size = 20,
+      hjust = 0
+    )
+  )
+}
+
+sw_graph_fun("drl")
+
+sw_graph_fun("circle")
+
+sw_graph_fun("nicely")
+
+sw_graph_fun("dh")
+
+sw_graph_fun("gem")
+
+sw_graph_fun("graphopt")
+
+sw_graph_fun("grid")
+
+sw_graph_fun("kk")
+```
+
+
+## 7.5 Game of Thrones example
+Using the GOT_network.csv data, which contains information of 150 characters of the first season with a +/- and the # of encounters of each relationship. There is also the GOT_nodesdead.csv file, which contains a vector of nodes with 0/1 if the character is dead (0) or alive (1)
+```{r}
+got_network_data <- read_delim('GOT_network.csv',col_types = c('c','c','n'),col_names = TRUE)
+got_dead <- read_delim('GOT_nodesdead.csv',show_col_types = FALSE)
+got_data <- inner_join(got_network_data,got_dead,by=join_by(Source==Node)) |> 
+  mutate(source_house = case_when(str_detect(Source,"[-]")==TRUE ~ str_extract(Source,"[^-]+$"),.default = Source),
+         source_first_name = case_when(str_detect(Source,"[-]")==TRUE ~ str_extract(Source,"^[^-]+"),.default = Source),
+         target_house = case_when(str_detect(Target,"[-]")==TRUE ~ str_extract(Target,"[^-]+$"),.default = Target),
+         target_first_name = case_when(str_detect(Target,"[-]")==TRUE ~ str_extract(Target,"^[^-]+"),.default = Target)) |> 
+  relocate(source_first_name,target_first_name) 
+
+got_data
+```
+Convert to data table for graphs (tidygraph)
+```{r}
+got_data_graph <- got_data |> 
+  as_tbl_graph() |> 
+  activate(nodes) |> 
+  mutate(n_rank_traveller = node_rank_traveller()) |> # Get node rank (positionally close) by min hamiltonian path length (TSP solver)
+  arrange(n_rank_traveller) |> 
+  mutate(character_centrality = centrality_degree()) |> 
+  filter(character_centrality > 0)
+
+got_data_graph
+```
+Plots
+```{r}
+# Initial Plot
+ggraph(got_data_graph,layout = 'fr') + # Use Fruchterman-Reingold Algorithm for layout
+  geom_edge_link(alpha=0.2) +
+  geom_node_point(aes(color=factor(character_centrality)),size=2,show.legend = FALSE) +
+  geom_node_text(aes(label=name),size=2,repel=TRUE)+
+  scale_color_viridis_d()+
+  theme_graph() 
+
+ggraph(got_data_graph,layout='stress') +
+  geom_edge_link(aes(alpha=0.2)) +
+  geom_node_point()+
+  geom_node_text(aes(label=name),size=2,repel=TRUE)
+
+
+
+### TODO
+# Have last name, need to figure out tidygraph structure so its node info
+# Figure out how to find key characters
+# Figure out better use of color/size in the plot
+```
+
