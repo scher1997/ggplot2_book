@@ -368,6 +368,8 @@ sw_graph_fun("kk")
 
 ## 7.5 Game of Thrones example
 Using the GOT_network.csv data, which contains information of 150 characters of the first season with a +/- and the # of encounters of each relationship. There is also the GOT_nodesdead.csv file, which contains a vector of nodes with 0/1 if the character is dead (0) or alive (1)
+
+NOTE: I HAVE NOT FINISHED THIS EXAMPLE TO THE STANDARD I WANT. See lower cells for ideas. 
 ```{r}
 got_network_data <- read_delim('GOT_network.csv',col_types = c('c','c','n'),col_names = TRUE)
 got_dead <- read_delim('GOT_nodesdead.csv',show_col_types = FALSE)
@@ -378,6 +380,12 @@ got_data <- inner_join(got_network_data,got_dead,by=join_by(Source==Node)) |>
          target_first_name = case_when(str_detect(Target,"[-]")==TRUE ~ str_extract(Target,"^[^-]+"),.default = Target)) |> 
   relocate(source_first_name,target_first_name) 
 
+got_house_data <- got_data |> 
+  select(source_house,source_first_name) |> 
+  group_by(source_house,source_first_name) |> 
+  distinct()
+# Need 146 rows somehow to match the nodes in the tbl_graph below... 
+got_house_data
 got_data
 ```
 Convert to data table for graphs (tidygraph)
@@ -386,9 +394,14 @@ got_data_graph <- got_data |>
   as_tbl_graph() |> 
   activate(nodes) |> 
   mutate(n_rank_traveller = node_rank_traveller()) |> # Get node rank (positionally close) by min hamiltonian path length (TSP solver)
-  arrange(n_rank_traveller) |> 
-  mutate(character_centrality = centrality_degree()) |> 
-  filter(character_centrality > 0)
+  arrange(n_rank_traveller) |>
+  mutate(character_centrality = centrality_degree())
+
+# got_data |> 
+#   select(source_first_name,target_first_name,weight) |> 
+#   as_tbl_graph() |> 
+#   activate(nodes) |> 
+#   full_join(got_house_data,join_by(name==source_first_name))
 
 got_data_graph
 ```
@@ -410,8 +423,15 @@ ggraph(got_data_graph,layout='stress') +
 
 
 ### TODO
-# Have last name, need to figure out tidygraph structure so its node info
+# Have last name, need to figure out tidygraph structure so the house becomes node info
 # Figure out how to find key characters
 # Figure out better use of color/size in the plot
+```
+```{r}
+iris_sum <- iris %>% 
+    group_by(Species) %>% 
+    summarise_all(mean) %>% 
+    ungroup()
+iris_sum
 ```
 
