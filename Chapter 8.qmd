@@ -1,0 +1,65 @@
+---
+title: "Chapter 8"
+format: html
+editor: visual
+---
+
+# Annotations
+Imports
+```{r}
+library(tidyverse)
+```
+
+## 8.1 Plot and axis titles
+`labs(title = My Title,x ='X Axis',y ='Y Axis,fill = 'fill legend')` 
+```{r}
+ggplot(mpg,aes(displ,hwy))+
+  geom_point(aes(color=factor(cyl)))+
+  labs(
+    x = 'Engine displacement (liters)',
+    y = 'Highway miles per gallon',
+    color = 'Number of cylinders',
+    title = 'Mileage by engine size and cylinders',
+    subtitle = 'Source: https://fueleconomy.gov'
+  )
+
+```
+Use `\n` to specify line break. Mathematical expressions also work within `quote()`. The details for math expressions are in ?plotmath() 
+```{r}
+values <- seq(from = -2, to = 2, by= 0.1)
+df <- tibble(x=values,y=values^3)
+ggplot(df,aes(x,y))+
+  geom_path()+
+  labs(y=quote(f(x)==x^3))
+```
+There's also a **ggtext** package for markdown in axis and legend titles. 
+```{r}
+df <- tibble(x=1:3,y=2:4)
+ggplot(df,aes(x,y))+
+  geom_point()+
+  labs(x='Axis title with *italics* and **boldface**')+
+  theme(axis.title.x = ggtext::element_markdown())
+```
+## 8.2 Text labels
+`geom_text()` adds `label` text at the specified `x` and `y` positions. 
+- The `family` aesthetic provides the name of a font. The aesthetic *does* allow the use of the name of a system font. There are three main fonts: "sans", "serif", or "mono" with "sans" as the default. 
+```{r}
+df <- tibble(x=1,y=3:1,family=c('sans','serif','mono'))
+ggplot(df,aes(x,y))+
+  geom_text(aes(label=family,family=family))
+```
+
+- The `fontface` aesthetic specifies the face, and can take three values: "plain" (default), 'bold', or 'italic'. 
+```{r}
+df <- tibble(x=1,y=3:1,face=c('plain','bold','italic'))
+ggplot(df,aes(x,y))+
+  geom_text(aes(label=face,fontface=face))
+```
+- Horizontal alignment `hjust` ('left','center','right','inward','outward') and vertical alignment `vjust` ('bottom','middle,'top','inward','outward'). 'inward' is useful because it guarantees the text remains within the plot. 
+```{r}
+df <- tibble(x=c(1,1,2,2,1.5),y=c(1,2,1,2,1.5),text=c('bottom-left','top-left','bottom-right','top-right','center'))
+ggplot(df,aes(x,y))+
+  geom_text(aes(label=text),vjust='inward',hjust='inward')
+```
+- Font size controlled by `size` in millimeters. 
+- How to rotate text is through `angle`.
