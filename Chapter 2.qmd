@@ -5,6 +5,7 @@ editor: visual
 ---
 
 # Chapter 2 First steps 
+https://aditya-dahiya.github.io/ggplot2book3e/ for other good examples. 
 
 Mostly an introduction chapter.
 
@@ -19,7 +20,7 @@ library(gridExtra) # For some multi plots I want to show
 
 ## 2.2 Fuel Economy Data
 
-One of the bread and butter datasets we will use for visualizations
+One of the bread and butter data sets we will use for visualizations
 
 ```{r}
 head(mpg)
