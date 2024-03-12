@@ -7,6 +7,7 @@ editor: visual
 # Annotations
 Imports
 ```{r}
+#| echo: false
 library(tidyverse)
 ```
 

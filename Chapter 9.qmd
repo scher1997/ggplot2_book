@@ -1,0 +1,12 @@
+---
+title: "Chapter 9"
+format: html
+editor: visual
+---
+
+# Arranging plots
+Imports
+```{r}
+#| echo: false
+library(tidyverse)
+```
