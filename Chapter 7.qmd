@@ -436,6 +436,7 @@ iris_sum <- iris %>%
 iris_sum
 ```
 
+## 7.6 Cedric Scherer's Blog Example
 From Cedric Scherer's blog. Best ever. 
 ```{r}
 ## packages

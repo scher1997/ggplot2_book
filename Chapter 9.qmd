@@ -10,3 +10,5 @@ Imports
 #| echo: false
 library(tidyverse)
 ```
+
+This chapter is actually not recommended at the time of this reading... They are still working on finishing the draft. 

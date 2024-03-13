@@ -244,28 +244,50 @@ ggplot(df,aes(x=date,y=unemp_rate))+
   cowplot::theme_cowplot()
 
 ```
-
+Example from https://r4ds.github.io/bookclub-ggplot2/annotations-1.html
 ```{r}
-# Custom function to find peaks
-find_peaks <- function(x) {
-  x_minus <- lag(x)
-  x_plus <- lead(x)
-  peaks <- x > x_minus & x > x_plus
-  return(peaks)
-}
+# tuesdata <- tidytuesdayR::tt_load('2020-07-14')
+tuesdata <- tidytuesdayR::tt_load(2020, week = 29)
+astronauts <- tuesdata$astronauts
 
-# Example dataframe (replace with your actual data)
-my_data <- data.frame(
-  time = 1:10,
-  values = c(10, 15, 12, 20, 18, 25, 22, 30, 28, 15)
-)
-
-# Add a new column for peaks
-my_data <- my_data %>%
-  mutate(peaks = find_peaks(values))
-
-# View the modified dataframe
-my_data
+astronauts %>% 
+  filter(nationality %in% c("U.S.","Australia", "U.K.", "U.S.S.R/Russia", "Japan")) %>% 
+  ggplot(aes(x = nationality, y = hours_mission, color = hours_mission)) +
+  coord_flip() +
+    geom_point(size = 4, alpha = 0.15) +
+    geom_boxplot(color = "gray60", outlier.alpha = 0) +
+    stat_summary(fun = mean, geom = "point", size = 5, color = "dodgerblue") +
+   annotate(
+   geom = "curve", x = 3.8, y = 2500, xend = 4, yend = 650,
+   curvature = .3, arrow = arrow(length = unit(2, "mm"))
+) +
+ annotate(
+    "text", x = 3.7, y = 2500,
+    label = "The U.S. Mean Hours Mission", size = 2.7) +
+   annotate(
+   geom = "curve", x = 4.7, y = 4200, xend = 5, yend = 2800,
+   curvature = .3, arrow = arrow(length = unit(2, "mm"))
+) +
+ annotate(
+    "text", x = 4.5, y = 3700,
+    label = "The interquartile range, between 25% and 75% of values", size = 2.8) +
+    annotate(
+   geom = "curve", x = 1, y = 3800, xend = 1, yend = 900,
+   curvature = .3, arrow = arrow(length = unit(2, "mm"))
+) +
+ annotate(
+    "text", x = .8, y = 3000,
+    label = "Australian Astronaut Andrew S. W. Thomas 
+    completed missions in 1983, 1998, 2001, 2005 and is now retired", size = 2.8) +
+  scale_color_viridis_c() +
+  scale_y_continuous(limits = c(0, 5000)) +
+  labs(title = "Length of Astronaut Missions in hours",
+       subtitle = "A Study was conducted on the effects of space on various individuals",
+       caption = "Source: TidyTuesday 2020 week 29 \n inspired by plots in The Evolution of a ggplot (ep1) by Cedric Scherer") +
+  ggthemes::theme_fivethirtyeight() +
+  theme(legend.position = "none") +
+  theme(plot.title = element_text(hjust = .5)) +
+    theme(plot.subtitle = element_text(hjust = .5)) 
 
 ```
 
