@@ -1,0 +1,335 @@
+---
+title: "Chapter 10"
+format: html
+    # theme: custom.scss
+editor: visual
+---
+
+# Position scales and axes
+
+Imports
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(patchwork)
+```
+
+Position scales are used to control the locations of visual entities in a plot, and how those locations are mapped to data values. Every plot has two position scales, the x and y aesthetics. But in some cases, for example with `geom_histogram()` there is no need to specify y since it computes a `count` variable.
+
+```{r}
+ggplot(mpg, aes(x = displ)) + geom_histogram()
+ggplot(mpg, aes(x = displ, y = after_stat(count))) + geom_histogram()
+
+```
+
+## 10.1 Numeric position scales
+
+Most commonly `scale_x_continuous()` and `scale_y_continuous()`. There are others such as `scale_x_log10()` and `scale_x_reverse()`.
+
+### 10.1.1 Limits
+
+All scales have limit values to bound them. Useful when trying to keep views consistent across multiple plots.
+
+```{r}
+mpg_99 <- mpg %>% filter(year == 1999)
+mpg_08 <- mpg %>% filter(year == 2008)
+
+base_99 <- ggplot(mpg_99, aes(displ, hwy)) + geom_point() 
+base_08 <- ggplot(mpg_08, aes(displ, hwy)) + geom_point() 
+
+base_99 | base_08
+```
+
+Setting limits for axis for consistent scaling
+
+```{r}
+base_99 +
+  scale_x_continuous(limits=c(1,7))+
+  scale_y_continuous(limits=c(10,45)) |
+  base_08 +
+  scale_x_continuous(limits=c(1,7))+
+  scale_y_continuous(limits=c(10,45))
+```
+
+Quicker way to do this is through `lims()` or `xlim()` and `ylim()`.
+
+```{r}
+base_99 + lims(x=c(1,7),y=c(10,45)) |
+  base_08 + lims(x=c(1,7),y=c(10,45))
+```
+
+### 10.1.2 Zooming in
+
+Use `coord_cartesian(xlim=c(),ylim=c())` to zoom. Using just limits will distort the plot by converting values outside of the specified range to `NA`.
+
+```{r}
+base <- ggplot(mpg,aes(drv,hwy))+
+  geom_hline(yintercept = 28,color='red')+
+  geom_boxplot()
+
+base | base+coord_cartesian(ylim=c(10,35)) | base+ylim(10,35) # Distorts boxplot by converting numbers outside range to NA
+```
+
+### 10.1.3 Visual range expansion
+
+To remove the extra bit of axes that's included through **ggplot2**, use the override with the `expand` argument and `expansion()` value.
+
+```{r}
+base <- ggplot(faithfuld,aes(waiting,eruptions))+
+  geom_raster(aes(fill=density))+
+  theme(legend.position='none')+
+  labs(x=NULL,y=NULL)
+
+base | base +
+  scale_x_continuous(expand=expansion(0))+ # multiplied by 0 removes the expand
+  scale_y_continuous(expand=expansion(0))
+```
+
+`expansion()` has both an "additive" factor, which specifies a constant space to add, and a "multiplicative" factor, which adds space defined as a proportion of the total size of the axis limit.
+
+```{r}
+# Additive
+p1 <- base +
+  scale_x_continuous(expand = expansion(add=3))+ # 3 units of this axis
+  scale_y_continuous(expand = expansion(add=3))
+# Multiplicative 
+p2 <- base +
+  scale_x_continuous(expand = expansion(mult = 0.2))+ # 20 % of axis range
+  scale_y_continuous(expand = expansion(mult = 0.2))
+# Multiplicative (5% lower end of each axes 20% upper end)
+p3 <- base +
+  scale_x_continuous(expand = expansion(mult = c(0.05,0.2)))+
+  scale_y_continuous(expand = c(0.05, 0, 0.2, 0)) # Set directly 
+p1 | p2 | p3
+
+```
+
+### 10.1.4 Breaks
+
+Setting axis ticks and legend ticks are controlled with the `breaks` argument in a `scale_()` function.
+
+```{r}
+toy <- tibble(
+  const = 1,
+  up = 1:4,
+  txt = letters[1:4],
+  big = (1:4)*1000,
+  log = c(2,4,10,2000)
+)
+toy 
+```
+
+`breaks = NULL` or a vector of data values.
+
+```{r}
+base <- ggplot(toy, aes(big,const))+
+  geom_point() +
+  labs(x=NULL,y=NULL)+
+  scale_y_continuous(breaks=NULL)
+
+base | base + scale_x_continuous(breaks = c(1000,2000,4000)) | base + scale_x_continuous(breaks = c(1000,1500,2000,4000))
+  
+```
+
+The `breaks` argument also allows custom functions instead of vectors. Or just use the **scales** package. - `scales::breaks_extended()` creates automatic breaks for numeric axes. - `scales::breaks_log()` creates breaks appropriate for log axes. - `scales::breaks_pretty()` creates "pretty" breaks for dates/times. - `scales::breaks_width()` creates equally spaced breaks.
+
+```{r}
+base | base+scale_x_continuous(breaks=scales::breaks_extended()) | base+scale_x_continuous(breaks=scales::breaks_extended(n=2))
+```
+
+Another approach is to specify a fixed `width` that defines the spacing between breaks (`breaks_width()`).
+
+```{r}
+base +
+  scale_x_continuous(breaks=scales::breaks_width(800)) |
+  base + scale_x_continuous(breaks=scales::breaks_width(800,offset=200)) | # Shift all breaks 200 (left?)
+  base + scale_x_continuous(breaks=scales::breaks_width(800,offset=-200)) # Shifts all breaks 200 (right?)
+```
+
+### 10.1.5 Minor breaks
+
+Minor breaks are the unlabeled faint grid lines that appear between the major grid lines. The `minor_breaks` argument controls this.
+
+```{r}
+mb <- unique(as.numeric(1:10 %o% 10^(0:3))) # %o% generates a multiplication table
+mb
+```
+
+```{r}
+base <- ggplot(toy,aes(log,const)) +
+  geom_point() +
+  labs(x=NULL,y=NULL) +
+  scale_y_continuous(breaks = NULL)
+
+base + scale_x_log10() | base + scale_x_log10(minor_breaks = mb) # Second one helps to show logarithmic x-axis
+```
+
+### 10.1.6 Labels
+
+`labels` argument within the `scale_()` function changes the associated label at a break.
+
+```{r}
+base <- ggplot(toy,aes(big,const))+
+  geom_point()+
+  labs(x=NULL,y=NULL)+
+  scale_y_continuous(breaks=NULL)
+
+base | base+scale_x_continuous(breaks=c(2000,4000),labels=c('2k','4k'))
+```
+
+Instead of using a manual `label`, a labeling function may be provided. Or use the **scales** package with some built-in function. - `scales::label_bytes()` formats numbers as kilobytes, megabytes, etc. - `scales::label_comma()` formats numbers as decimals with commas added. - `scales::label_dollar()` formats numbers as currency. - `scales::label_ordinal()` formats numbers in rank order: 1st, 2nd, 3rd etc. - `scales::label_percent()` format numbers as percentages. - `scales::label_pvalue()` formats numbers as p-values: \<0.05, \<0.1, \<0.34, etc.
+
+```{r}
+base <- ggplot(toy, aes(big, const)) + 
+  geom_point() + 
+  labs(x = NULL, y = NULL) +
+  scale_x_continuous(breaks = NULL)
+
+base |
+base + scale_y_continuous(labels = scales::label_percent()) |
+base + scale_y_continuous(
+  labels = scales::label_dollar(prefix = "", suffix = "€")
+)
+```
+
+By suppressing labels with `labels = NULL`, this will remove the labels from the axis or legend while leaving the other properties unchanged. While `breaks = NULL` is different.
+
+```{r}
+base + scale_y_continuous(breaks= NULL) | base + scale_y_continuous(labels=NULL)
+```
+
+### Exercises
+
+1.  Recreate the following graphic:
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() + 
+  scale_x_continuous("Displacement", labels = scales::unit_format(suffix = "L")) + 
+  scale_y_continuous(quote(paste("Highway ", (frac(miles, gallon)))))  
+```
+
+```{r}
+ggplot(mpg, aes(displ,hwy)) +
+  geom_point() +
+  scale_x_continuous('Displacement',labels=scales::unit_format(suffix = 'L'))+
+  scale_y_continuous(quote(paste('Highway ',bgroup('(',frac(miles,gallon),')'))))
+
+```
+
+2.  List the three different types of object you can supply to the `breaks` argument. How do `breaks` and `labels` differ?
+
+    1.  `NULL`
+
+    2.  `c()`
+
+    3.  `function{}` but not usually custom instead you use from **scales** package (e.g. `scales::breaks_pretty()`) or within **ggplot2** package.
+
+3.  What label function allows you to create mathematical expressions? `expression()`
+
+4.  What label function converts 1 to 1st, 2 to 2nd, and so on? `label_ordinal()`
+
+### 10.1.7 Transformations
+
+With continuous data, the default mapping is linear, but different transformations might be needed depending on the data.
+
+```{r}
+base <- ggplot(mpg,aes(displ, hwy)) + geom_point()
+
+base | base+scale_x_reverse() | base+scale_y_reverse()
+
+```
+
+Every continuous scale takes a `trans` argument, allowing the use of a variety of transformations:
+
+```{r}
+# Converting fuel economy to fuel consumption
+ggplot(mpg,aes(displ,hwy)) +
+  geom_point() +
+  scale_y_continuous(trans = 'reciprocal') # gallons per mile now
+
+# Log transform x and y axes
+ggplot(diamonds, aes(price,carat)) +
+  geom_bin2d() +
+  scale_x_continuous(trans = 'log10') +
+  scale_y_continuous(trans = 'log10')
+
+```
+
+The transformation is carried out by a "transformer", which describes the transformation, its inverse, and how to draw the labels. `scales::trans_new()` allows construction of new transformers.
+
+The following table lists some of the more common variants:
+
+| Name           | Transformer                  | Function $f(x)$         | Inverse $f^{-1}(x)$  |
+|------------------|--------------------|------------------|------------------|
+| `"asn"`        | `scales::asn_trans()`        | $\tanh^{-1}(x)$         | $\tanh(y)$           |
+| `"exp"`        | `scales::exp_trans()`        | $e ^ x$                 | $\log(y)$            |
+| `"identity"`   | `scales::identity_trans()`   | $x$                     | $y$                  |
+| `"log"`        | `scales::log_trans()`        | $\log(x)$               | $e ^ y$              |
+| `"log10"`      | `scales::log10_trans()`      | $\log_{10}(x)$          | $10 ^ y$             |
+| `"log2"`       | `scales::log2_trans()`       | $\log_2(x)$             | $2 ^ y$              |
+| `"logit"`      | `scales::logit_trans()`      | $\log(\frac{x}{1 - x})$ | $\frac{1}{1 + e(y)}$ |
+| `"probit"`     | `scales::probit_trans()`     | $\Phi(x)$               | $\Phi^{-1}(y)$       |
+| `"reciprocal"` | `scales::reciprocal_trans()` | $x^{-1}$                | $y^{-1}$             |
+| `"reverse"`    | `scales::reverse_trans()`    | $-x$                    | $-y$                 |
+| `"sqrt"`       | `scales::scale_x_sqrt()`     | $x^{1/2}$               | $y ^ 2$              |
+
+The following are equivalent
+
+```{r}
+#| fig-show: hide
+#| layout-ncol: 2
+#| fig-width: 4
+ggplot(mpg,aes(displ,hwy))+
+  geom_point() +
+  scale_y_continuous(trans='reciprocal')
+
+ggplot(mpg,aes(displ,hwy)) +
+  geom_point() +
+  scale_y_continuous(scales::reciprocal_trans())
+```
+
+In addition to the following, less complex, equivalent plots
+
+```{r}
+#| fig-show: hide
+#| layout-ncol: 2
+#| fig-width: 4
+ggplot(diamonds,aes(price,carat))+
+  geom_bin2d() +
+  scale_x_continuous(trans = 'log10') +
+  scale_y_continuous(trans = 'log10')
+
+ggplot(diamonds, aes(price,carat)) +
+  geom_bin2d() +
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+Instead of using plots, the data can also just be modified manually.
+
+```{r}
+#| fig-show: hide
+#| layout-ncol: 2
+#| fig-width: 4
+ggplot(mpg,aes(log10(displ),hwy)) +
+  geom_point()
+
+ggplot(mpg,aes(displ,hwy)) +
+  geom_point() +
+  scale_x_log10()
+```
+
+:::{.callout-note}
+
+#### When does the transformation occur?
+
+The transformation occurs before any statistical summaries. To transform *after* statistical computation use `coord_trans()`.
+
+
+## 10.2 Date-time position scales
+
+Special cases of numeric datatype for data/time types are `Date` (dates), `PSIXct` (for date-times), and `hms` (for time of day) classes. Most date manipulation is through the **lubridate** package.
+
+### 10.2.1 Breaks
