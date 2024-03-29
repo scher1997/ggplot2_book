@@ -333,3 +333,83 @@ The transformation occurs before any statistical summaries. To transform *after*
 Special cases of numeric datatype for data/time types are `Date` (dates), `PSIXct` (for date-times), and `hms` (for time of day) classes. Most date manipulation is through the **lubridate** package.
 
 ### 10.2.1 Breaks
+`date_breaks` argument allows position breaks by date units (years, months, weeks, days, hours, minutes, and seconds). For example `date_breaks = '2 weeks'` or `date_breaks = '15 years'`. 
+```{r}
+#| layout-ncol: 2
+date_base <- ggplot(economics, aes(date,psavert)) +
+  geom_line(na.rm = TRUE) +
+  labs(x=NULL,y=NULL)
+
+date_base 
+date_base + scale_x_date(date_breaks = '15 years')
+```
+:::{.callout-note}
+
+#### Should I just use the **scales** package?
+
+The usage of the shorthand `date_breaks = '15 years'` is a shortcut from using `breaks = scales::breaks_width('15 years')`. Use the longer form if an `offset` is desired. 
+
+```{r}
+the_year <- as.Date(c('2021-01-01','2021-12-31'))
+set_breaks <- scales::breaks_width('1 month')
+set_breaks(the_year) # Create breaks one month apart in the range. 
+```
+To add in an offset for something such as a monthly salary being procssed on the eleventh day of each month. 
+```{r}
+set_breaks <- scales::breaks_width('1 month',offset = 8)
+set_breaks(the_year)
+```
+### 10.2.2 Minor breaks
+`date_minor_breaks` argument allows specification of the minor breaks in using date units, the same way as `date_breaks` does for major breaks. 
+```{r}
+#| layout-ncol: 2
+df <- tibble(y = as_date(c('2022-01-01','2022-04-01')))
+base  <- ggplot(df, aes(y=y)) +
+  labs(y = NULL) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_line(color='black'),
+    panel.grid.minor = element_line(color = 'grey50')
+  )
+
+base + scale_y_date(date_breaks = '1 month')
+base + scale_y_date(date_breaks = '1 month', date_minor_breaks = '1 week')
+```
+### 10.2.3 Labels
+`labels` argument behaves similarly to the corresponding argument for numeric scales, but is often more convenient to use the `date_labels` argument.
+
+| String | Meaning                            |
+|:-------|:-----------------------------------|
+| `%S`   | second (00-59)                     |
+| `%M`   | minute (00-59)                     |
+| `%l`   | hour, in 12-hour clock (1-12)      |
+| `%I`   | hour, in 12-hour clock (01-12)     |
+| `%p`   | am/pm                              |
+| `%H`   | hour, in 24-hour clock (00-23)     |
+| `%a`   | day of week, abbreviated (Mon-Sun) |
+| `%A`   | day of week, full (Monday-Sunday)  |
+| `%e`   | day of month (1-31)                |
+| `%d`   | day of month (01-31)               |
+| `%m`   | month, numeric (01-12)             |
+| `%b`   | month, abbreviated (Jan-Dec)       |
+| `%B`   | month, full (January-December)     |
+| `%y`   | year, without century (00-99)      |
+| `%Y`   | year, with century (0000-9999)     |
+
+```{r}
+#| layout-ncol: 2
+base <- ggplot(economics, aes(date,psavert)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = NULL, y = NULL)
+
+base + scale_x_date(date_breaks = '5 years')
+base + scale_x_date(date_breaks = '5 years', date_labels = '%y')
+```
+```{r}
+#| layout-ncol: 2
+lim <- as_date(c('2004-01-01','2005-01-01'))
+
+base + scale_x_date(limits = lim, date_labels = '%b %y')
+base + scale_x_date(limits = lim, date_labels = '%B\n%Y') # \n for line breaks
+```
+
