@@ -262,7 +262,7 @@ The transformation is carried out by a "transformer", which describes the transf
 The following table lists some of the more common variants:
 
 | Name           | Transformer                  | Function $f(x)$         | Inverse $f^{-1}(x)$  |
-|------------------|--------------------|------------------|------------------|
+|------------------|-------------------|------------------|------------------|
 | `"asn"`        | `scales::asn_trans()`        | $\tanh^{-1}(x)$         | $\tanh(y)$           |
 | `"exp"`        | `scales::exp_trans()`        | $e ^ x$                 | $\log(y)$            |
 | `"identity"`   | `scales::identity_trans()`   | $x$                     | $y$                  |
@@ -327,13 +327,14 @@ ggplot(mpg,aes(displ,hwy)) +
 
 The transformation occurs before any statistical summaries. To transform *after* statistical computation use `coord_trans()`.
 
-
 ## 10.2 Date-time position scales
 
 Special cases of numeric datatype for data/time types are `Date` (dates), `PSIXct` (for date-times), and `hms` (for time of day) classes. Most date manipulation is through the **lubridate** package.
 
 ### 10.2.1 Breaks
-`date_breaks` argument allows position breaks by date units (years, months, weeks, days, hours, minutes, and seconds). For example `date_breaks = '2 weeks'` or `date_breaks = '15 years'`. 
+
+`date_breaks` argument allows position breaks by date units (years, months, weeks, days, hours, minutes, and seconds). For example `date_breaks = '2 weeks'` or `date_breaks = '15 years'`.
+
 ```{r}
 #| layout-ncol: 2
 date_base <- ggplot(economics, aes(date,psavert)) +
@@ -343,24 +344,30 @@ date_base <- ggplot(economics, aes(date,psavert)) +
 date_base 
 date_base + scale_x_date(date_breaks = '15 years')
 ```
+
 :::{.callout-note}
 
 #### Should I just use the **scales** package?
 
-The usage of the shorthand `date_breaks = '15 years'` is a shortcut from using `breaks = scales::breaks_width('15 years')`. Use the longer form if an `offset` is desired. 
+The usage of the shorthand `date_breaks = '15 years'` is a shortcut from using `breaks = scales::breaks_width('15 years')`. Use the longer form if an `offset` is desired.
 
 ```{r}
 the_year <- as.Date(c('2021-01-01','2021-12-31'))
 set_breaks <- scales::breaks_width('1 month')
 set_breaks(the_year) # Create breaks one month apart in the range. 
 ```
-To add in an offset for something such as a monthly salary being procssed on the eleventh day of each month. 
+
+To add in an offset for something such as a monthly salary being procssed on the eleventh day of each month.
+
 ```{r}
 set_breaks <- scales::breaks_width('1 month',offset = 8)
 set_breaks(the_year)
 ```
+
 ### 10.2.2 Minor breaks
-`date_minor_breaks` argument allows specification of the minor breaks in using date units, the same way as `date_breaks` does for major breaks. 
+
+`date_minor_breaks` argument allows specification of the minor breaks in using date units, the same way as `date_breaks` does for major breaks.
+
 ```{r}
 #| layout-ncol: 2
 df <- tibble(y = as_date(c('2022-01-01','2022-04-01')))
@@ -375,7 +382,9 @@ base  <- ggplot(df, aes(y=y)) +
 base + scale_y_date(date_breaks = '1 month')
 base + scale_y_date(date_breaks = '1 month', date_minor_breaks = '1 week')
 ```
+
 ### 10.2.3 Labels
+
 `labels` argument behaves similarly to the corresponding argument for numeric scales, but is often more convenient to use the `date_labels` argument.
 
 | String | Meaning                            |
@@ -405,11 +414,74 @@ base <- ggplot(economics, aes(date,psavert)) +
 base + scale_x_date(date_breaks = '5 years')
 base + scale_x_date(date_breaks = '5 years', date_labels = '%y')
 ```
+
 ```{r}
-#| layout-ncol: 2
+#| layout-ncol: 3
 lim <- as_date(c('2004-01-01','2005-01-01'))
 
 base + scale_x_date(limits = lim, date_labels = '%b %y')
 base + scale_x_date(limits = lim, date_labels = '%B\n%Y') # \n for line breaks
+base + scale_x_date(limits = lim, labels = scales::label_date_short()) # Nice way to get Shorter named months
+```
+
+## 10.3 Discrete position scales
+
+The following are equivalent
+
+```{r}
+#| layout-ncol: 2
+ggplot(mpg, aes(x=hwy,y=class)) +
+  geom_point()+
+  annotate('text',x=5,y=1:7,label=1:7)
+
+ggplot(mpg,aes(x=hwy,y=class)) +
+  geom_point() +
+  scale_x_continuous() +
+  scale_y_discrete() +
+  annotate('text',x=5,y=1:7,label=1:7)
+```
+
+Using jitter is nice feature to notice the overlapping cases which might not appear in the plot.
+
+```{r}
+ggplot(mpg,aes(x=hwy,y=class))+
+  geom_jitter(width = 0, height = 0.25) + # Only vary on the categorical dimension
+annotate('text',x=5,y=1:7,label=1:7)
+```
+
+### 10.3.1 Limits, breaks, and labels
+
+`limits`, behave mostly like numeric scales, but the limits of a discrete scale are not defined in terms of endpoints and instead correspond to the set of allowable values (as characters) for that variable.
+
+```{r}
+#| layout-ncol: 3
+base <- ggplot(toy, aes(const,txt))+
+  geom_label(aes(label=txt)) +
+  scale_x_continuous(breaks = NULL) +
+  labs(x=NULL,y=NULL)
+
+base
+base + scale_y_discrete(limits =c('a','b','c','d','e')) # Note that e doesn't exist in the data but we made an entry for it on the y axis
+base + scale_y_discrete(limits = c('a','d','c','b')) # The order is changed but reflected in the axis
+```
+
+`breaks`, is also mostly unchanged, but the `labels` argument allows the option of using a named vector to set the labels associated with particular values.
+
+```{r}
+#| layout-ncol: 2
+base + scale_y_discrete(breaks = c('b','c')) # Only show two breaks
+base + scale_y_discrete(labels = c(c='carrot',b='banana')) # Can change the label for specific values
+```
+
+:::{.callout-note}
+
+Using `scales::label_wrap()` is nice when the categorical data contains long strings to wrap around multiple lines.
+
+### 10.3.2 Label positions
+Notice the mess on the x-axis...
+```{r}
+base <- ggplot(mpg,aes(manufacturer,hwy))+
+  geom_boxplot()
+base
 ```
 
