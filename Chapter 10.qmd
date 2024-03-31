@@ -484,4 +484,55 @@ base <- ggplot(mpg,aes(manufacturer,hwy))+
   geom_boxplot()
 base
 ```
+Issue can be avoided by using `guides()` function, but in particular `guide_axis()` position aesthetic. 
+```{r}
+#| layout-ncol: 2
+base + guides(x = guide_axis(n.dodge=3))
+base + guides(x = guide_axis(angle=90))
+# base + scale_x_discrete(guide = guide_axis(n.dodge = 3)) # Equivalent as above
+# base + scale_x_discrete(guide = guide_axis(angle = 90)) # Equivalent as above
+```
+## 10.4 Binned position scales
+Binned scales are when a continuous variable is sliced into multiple bins and the discretized variable is plotted. For example using `geom_bar()` and a binned position scale to approximate a histogram produced using `geom_histogram()`.
+```{r}
+#| layout-ncol: 2
+ggplot(mpg,aes(hwy)) + geom_histogram(bins=8)
+ggplot(mpg,aes(hwy)) +
+  geom_bar()  +
+  scale_x_binned()
+```
+It's more powerful when using a `geom_count()` layer, which is scaled to the number of observations in each location, but with continuous variables the overlapping does not always create nice binning behavior when values differ slightly, so by binning this is addressed. 
+```{r}
+#| layout-ncol: 2
+ggplot(mpg,aes(displ,hwy))+
+  geom_count()
+
+ggplot(mpg,aes(displ,hwy))+
+  geom_count()+
+  scale_x_binned(n.breaks = 15) +
+  scale_y_binned(n.breaks = 15)
+```
+## 10.5 Chapter Example
+Attempt is to demonstrate different uses of scales and axes for data that does not translate nicely to default **ggplot2** figures. The example will be using data from the **COVID19** package (https://covid19datahub.io/) which collected a daily summary of COVID-19 cases, deaths, recovered, tests, vaccinations, and hospitalizations for 230+ countries, 760+ regions, and 12000+ administrative divisions. 
+```{r}
+USA_daily <- COVID19::covid19('USA') 
+# Quick peak to see when to cutoff
+USA_daily |> 
+  ggplot(aes(confirmed)) +
+  geom_histogram() +
+  facet_wrap(~year(date))
+
+covid_dates <- as.Date(c('2020-01-01','2023-06-01'))
+set_breaks <- scales::breaks_width('6 months')
+
+USA_daily |> 
+  select(date,confirmed,deaths,recovered,stay_home_restrictions) |> 
+  ggplot(aes(x=date,y=confirmed))+
+  geom_line(na.rm = TRUE) +
+  scale_x_date(breaks = set_breaks(covid_dates),date_labels = '%b-%Y',limits = as.Date(c('2020-01-01','2023-04-01')))+
+  guides(x=guide_axis(angle=90))+
+  labs(x='Date',y='Approximate Rate of Confirmed Cases',title = 'COVID-19 In the USA') +
+  scale_y_log10(labels=scales::label_number_si())
+
+```
 
