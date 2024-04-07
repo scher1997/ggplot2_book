@@ -222,3 +222,43 @@ What's also cool is the interactive map can be saved as a Web Page.
 ## 6.7 Data Sources
 Look into https://gadm.org/ for Global Administrative Areas (GADM) which includes boundary shapefiles.
 https://www.openstreetmap.org/ is also a source for maps. Not sure if the file tipe will work...
+
+## 6.8 Chapter Project
+Going to plot a map of the US with the average marriage age by state. Data obtained from https://www.marriage.com/advice/pre-marriage/average-age-of-marriage-by-state/
+```{r}
+states <- map_data('state')
+marriage_ages <- read_delim('average_marriage_age_by_state.txt',delim = '\t', col_types = c('c','i','i'))
+marriage_ages[,'State'] = tolower(marriage_ages$State)
+plot_data <- merge(states,marriage_ages,by.x='region',by.y='State')
+```
+
+Not sure why we're getting weird fills on California, Arizona, Colorado, Arkansas, and Alabama. Most likely because we're being kinda cheap and just using `geom_polygon()` as our main layer. 
+
+```{r}
+ggplot(plot_data,aes(long,lat)) +
+  geom_polygon(aes(group=group,fill=Women)) +
+  scale_fill_viridis_c()+
+  labs(title='Average Age of Marriage by US State',x='',y='')+
+  theme_classic()+
+  theme(axis.line=element_blank(),axis.text.x=element_blank(),
+          axis.text.y=element_blank(),axis.ticks=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_blank(),
+          panel.background=element_blank(),panel.border=element_blank(),panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),plot.background=element_blank())
+```
+
+```{r}
+ggplot(plot_data,aes(long,lat)) +
+  geom_polygon(aes(group=group,fill=Men)) +
+  scale_fill_viridis_c()+
+  labs(title='Average Age of Marriage by US State',x='',y='')+
+  theme_classic()+
+  theme(axis.line=element_blank(),axis.text.x=element_blank(),
+          axis.text.y=element_blank(),axis.ticks=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_blank(),
+          panel.background=element_blank(),panel.border=element_blank(),panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),plot.background=element_blank())
+```
+
