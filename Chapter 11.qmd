@@ -1,0 +1,15 @@
+---
+title: "Chapter 11"
+format: html
+editor: visual
+---
+
+# Color scales and legends
+Imports
+```{r}
+#| echo: false
+library(tidyverse)
+library(patchwork)
+```
+
+

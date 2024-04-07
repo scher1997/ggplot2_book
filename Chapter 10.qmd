@@ -512,7 +512,7 @@ ggplot(mpg,aes(displ,hwy))+
   scale_x_binned(n.breaks = 15) +
   scale_y_binned(n.breaks = 15)
 ```
-## 10.5 Chapter Example
+## 10.5 Chapter Project
 Attempt is to demonstrate different uses of scales and axes for data that does not translate nicely to default **ggplot2** figures. The example will be using data from the **COVID19** package (https://covid19datahub.io/) which collected a daily summary of COVID-19 cases, deaths, recovered, tests, vaccinations, and hospitalizations for 230+ countries, 760+ regions, and 12000+ administrative divisions. 
 ```{r}
 USA_daily <- COVID19::covid19('USA') 
