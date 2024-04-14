@@ -5,11 +5,66 @@ editor: visual
 ---
 
 # Color scales and legends
+
 Imports
+
 ```{r}
 #| echo: false
 library(tidyverse)
 library(patchwork)
 ```
 
+## 11.1 A little color theory
 
+This is geared towards the perception of sensory input to the eyes, which can be complex and is explained well http://tinyurl.com/clrdtls. There's the usual RGB encoding of color space, which defines a color by the intesities of red, green, and blue light needed to produce it. However a modern approach is used that uses HCL color space of *h*ue, *c*hroma, and *l*uminance. - *Hue* ranges from 0 to 360 (an angle) and gives the 'color' of the color. - *Chroma* is the 'purity' of the color, ranging from 0 (grey) to a maximum that varies with luminance - *Luminance* is the lightness of the color, ranging from 0 (black) to 1 (white).
+
+### 11.1.1 Color blindness
+
+A sizeable minority of people do not posess the usual complemnt of color receptions and so can distinguish fewer colros than others. A simple heuristic is to avoid red-green contrasts, and there's ways to check that visuals are easy to read for color-blind individuals (https://www.vischeck.com/). The `displayAllColors()` function from the *colorBlindness* package.
+
+```{r}
+#| warning: false
+colorBlindness::displayAllColors(rainbow(6))
+```
+
+The quick and easy `viridis()` colorscale are discriminable under the most common forms of color blindness and greyscale.
+
+```{r}
+#| warning: false
+colorBlindness::displayAllColors(viridis::viridis(6))
+```
+
+## 11.2 Continuous color scales
+
+Example plot for the section. Note that the fill aesthetic is used by the color aesthetic has the same ideas applied.
+
+```{r}
+erupt <- ggplot(faithfuld, aes(waiting,eruptions, fill=density)) +
+  geom_raster() +
+  scale_x_continuous(NULL,expand=c(0,0)) +
+  scale_y_continuous(NULL,expand=c(0,0)) +
+  theme(legend.position = 'none')
+
+```
+
+### 11.2.1 Particular palettes
+
+**ggplot2** has some "hand picked" palettes available. Such as `scale_fill_viridis_c()` (c for continuous)
+
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+erupt
+erupt + scale_fill_viridis_c()
+erupt + scale_fill_viridis_c(option = 'magma')
+```
+Or `scale_fill_distiller()`
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+erupt + scale_fill_distiller()
+erupt + scale_fill_distiller(palette = 'RdPu')
+erupt + scale_fill_distiller(palette = 'YlOrBr')
+```
