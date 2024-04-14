@@ -68,3 +68,23 @@ erupt + scale_fill_distiller()
 erupt + scale_fill_distiller(palette = 'RdPu')
 erupt + scale_fill_distiller(palette = 'YlOrBr')
 ```
+Or *scico* package for other palettes that are perpectually uniform and suitable for scientific visualization
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+erupt + scico::scale_fill_scico(palette = 'bilbao') # default
+erupt + scico::scale_fill_scico(palette = 'vik')
+erupt + scico::scale_fill_scico(palette = 'lajolla')
+```
+And lastly my recommended palette package *paletteer* which combines everything shown. 
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+
+erupt + paletteer::scale_fill_paletteer_c('viridis::plasma')
+erupt + paletteer::scale_fill_paletteer_c('scico::tokyo')
+```
+### 11.2.2 Robust recipes
+
