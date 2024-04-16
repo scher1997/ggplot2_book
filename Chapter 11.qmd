@@ -143,7 +143,7 @@ erupt + scale_fill_gradient(
 ```
 n-point gradient is good if you want to try to map the colors to the context of the figure. So if green/blue/whatever color is supposed to mean something to the audience then you can easily pick a color range that's best for it. 
 ```{r}
-#| layout-ncol: 2
+#| layout-ncol: 3
 #| fig-width: 3
 #| fig-height: 3
 #| warning: false
@@ -163,7 +163,7 @@ erupt + scale_fill_gradientn(colours = colorspace::diverge_hcl(7))
 ### 11.2.3 Missing values
 All continuous color scales have an `na.value` parameter that controls what color is used for missing values (including values outside of the range of scale limits). Setting `na.value=NA` makes missing values invisible. 
 ```{r}
-#| layout-ncol: 2
+#| layout-ncol: 3
 #| fig-width: 3
 #| fig-height: 3
 #| warning: false
@@ -178,5 +178,34 @@ base
 base + scale_fill_gradient(na.value = NA)
 base + scale_fill_gradient(na.value = 'yellow')
 
+```
+### 11.2.4 Limits, breaks, and labels
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+
+toy <- data.frame(
+  const = 1, 
+  up = 1:4,
+  txt = letters[1:4], 
+  big = (1:4)*1000,
+  log = c(2, 5, 10, 2000)
+)
+
+base <- ggplot(toy, aes(up,up, fill = big)) +
+  geom_tile() +
+  labs(x=NULL,y=NULL)
+
+base
+base + scale_fill_continuous(limits = c(0,10000))
+```
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+
+base + scale_fill_continuous(breaks = c(1000,2000,4000)) # Can supress breaks entirely by setting them to NULL
+base + scale_fill_continuous(labels = scales::label_dollar())
 ```
 
