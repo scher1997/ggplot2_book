@@ -208,4 +208,36 @@ base + scale_fill_continuous(limits = c(0,10000))
 base + scale_fill_continuous(breaks = c(1000,2000,4000)) # Can supress breaks entirely by setting them to NULL
 base + scale_fill_continuous(labels = scales::label_dollar())
 ```
+### 11.2.5 Legends
+Default continuous color bar is a gradient. 
+```{r}
+base <- ggplot(mpg,aes(cyl,displ,color=hwy))+
+  geom_point(size=2)
 
+base
+```
+The appearance is controlled using the `guide_colorbar()` function. The most important arguments are
+- `reverse` to flip the color bar to put the lowest values at the top
+- `barwidth` and `barheight` to specify the size of the bar, specified by grid units, e.g. `unit(1,'cm')`
+- `direction` specifies the direction of the guide, `"horizontal"` or `"vertical"`.
+
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+
+# Combine with guides() function to set customized legends and axes
+base + guides(color = guide_colorbar(reverse=TRUE))
+base + guides(color = guide_colorbar(unit(2,'cm')))
+base + guides(color = guide_colorbar(direction='horizontal'))
+```
+Or an alternative
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+
+base + guides(color = guide_colorbar(reverse=TRUE))
+base + scale_color_continuous(guide = guide_colorbar(reverse = TRUE))
+```
+## 11.3 Discrete color scales
