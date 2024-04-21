@@ -605,7 +605,7 @@ ggplot(faithfuld, aes(waiting, eruptions, alpha = density)) +
   scale_x_continuous(expand = c(0, 0)) + 
   scale_y_continuous(expand = c(0, 0))
 ```
-## Legend position
+## 11.7 Legend position
 Use the `theme()` function. 
 ```{r}
 #| layout-ncol: 4
@@ -653,5 +653,35 @@ base +
     legend.position = c(1, 0), 
     legend.justification = c(1, 0)
   )
+```
+
+## 11.8 Chapter Project
+We will build up a plot of data about the 2016 US general election. It is contained in the `county_data` object in the **socviz** package. The variable *flipped* indicates the county did not change in the majority political party from the previous election. 
+```{r}
+library(socviz)
+base <- ggplot(subset(county_data,flipped=='No'),aes(x=pop,y=black/100)) +
+  geom_point(alpha = 0.5,color='gray') +
+  scale_x_log10(labels=scales::comma) + 
+  scale_y_continuous(labels=scales::percent) +
+  labs(x='County Population (log scale)',
+       y='Percent Black Population',
+       title = 'Flipped Counties in the 2016 Presidential Election',
+       caption = '*counties in gray did not flip') 
+base
+```
+Going to add colors for the *flipped* counties and color them by the party they changed to. 
+```{r}
+plot_1 <- base + geom_point(data = subset(county_data,flipped=='Yes'),
+                  aes(x=pop,y=black/100,color=partywinner16)) +
+  scale_color_manual(values = c("#2E74C0", "#CB454A")) +
+  guides(color = guide_legend(title='Winning Party'))
+plot_1
+```
+```{r}
+library(ggrepel)
+plot_1 + geom_text_repel(data=subset(county_data,flipped=='Yes' & black>25),
+                         aes(x=pop,y=black/100,label=state),size=2) +
+  theme_classic() +
+  theme(legend.position = c(0.9,0.9))
 ```
 
