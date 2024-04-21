@@ -583,3 +583,75 @@ base + guides(colour = guide_coloursteps(ticks = TRUE))
 - `even.steps` is a logical variable indicating whether bins should be evenly spaced (default is `TRUE`) or proportional in size to their frequency in the data
 
 ## 11.5 Date-time color scales
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+
+base <- ggplot(economics, aes(psavert, uempmed, colour = date)) + 
+  geom_point() 
+
+base
+base + 
+  scale_colour_date(
+    date_breaks = "142 months", 
+    date_labels = "%b %Y"
+  )
+```
+## 11.6 Alpha scales
+```{r}
+ggplot(faithfuld, aes(waiting, eruptions, alpha = density)) +
+  geom_raster(fill = "lightpink") +
+  scale_x_continuous(expand = c(0, 0)) + 
+  scale_y_continuous(expand = c(0, 0))
+```
+## Legend position
+Use the `theme()` function. 
+```{r}
+#| layout-ncol: 4
+#| fig-width: 3
+#| fig-height: 3
+
+base <- ggplot(toy, aes(up,up)) +
+  geom_point(aes(color = txt),size=3) +
+  xlab(NULL) +
+  ylab(NULL)
+
+base + theme(legend.position = 'left')
+base + theme(legend.position = 'right') #default
+base + theme(legend.position = 'bottom')
+base + theme(legend.position = 'none')
+```
+
+There's other options to adjust the orientation of the legend too.
+- `legend.direction` to adjust the layhout of items ('horizontal' or 'vertical')
+- `legend.box` for the arrange of multiple legends ('horizontal' or 'vertical')
+- `legend.box.just` for the justification of each legend within the overall bounding box ('top', 'bottom', 'left', or 'right')
+If there's a lot of blank space in the plot then the legend may be placed inside the chart. `legend.position = c(x,y)` controls this and is based on a relative location, e.g. `c(0,1)` is top-left corner and `c(1,0)` is bottom-right corner. 
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+
+base <- ggplot(toy, aes(up, up)) + 
+  geom_point(aes(colour = txt), size = 3)
+
+base + 
+  theme(
+    legend.position = c(0, 1), 
+    legend.justification = c(0, 1)
+  )
+
+base + 
+  theme(
+    legend.position = c(0.5, 0.5), 
+    legend.justification = c(0.5, 0.5)
+  )
+
+base + 
+  theme(
+    legend.position = c(1, 0), 
+    legend.justification = c(1, 0)
+  )
+```
+
