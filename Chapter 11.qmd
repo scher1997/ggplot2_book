@@ -241,3 +241,222 @@ base + guides(color = guide_colorbar(reverse=TRUE))
 base + scale_color_continuous(guide = guide_colorbar(reverse = TRUE))
 ```
 ## 11.3 Discrete color scales
+Note that a discrete color scale will use `fill` aesthetic instead of the `color` aesthetic for continuous. 
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+#| 
+df <- tibble(x = c('a','b','c','d'),y=c(3,4,1,2))
+bars <-  ggplot(df, aes(x,y,fill=x)) +
+  geom_bar(stat='identity') +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = 'none')
+bars
+bars + scale_fill_discrete() # Default 
+bars + scale_fill_hue() # Same as default
+
+```
+### 11.3.1 Brewer scales
+`scale_color_brewer()` is a discrete color scale that, along with the continuous analog `scale_color_distiller()` and binned analog `scale_color_fermenter()`, uses handpicked "ColorBrewer" colors from https://colorbrewer2.org/. 
+```{r}
+#| fig-width: 7
+#| fig-height: 10
+RColorBrewer::display.brewer.all()
+```
+The first grouping are sequential scales and the second grouping is for not ordered categorical data.
+
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+# bar plot
+df <- data.frame(x = 1:3, y = 3:1, z = c("a", "b", "c"))
+area <- ggplot(df, aes(x, y)) + 
+  geom_bar(aes(fill = z), stat = "identity") + 
+  theme(legend.position = "none") +
+  labs(x = NULL, y = NULL)
+
+# three palettes
+area + scale_fill_brewer(palette = "Set1")
+area + scale_fill_brewer(palette = "Set2")
+area + scale_fill_brewer(palette = "Pastel1")
+```
+### 11.3.2 Hue and grey scales
+The default color scheme picks evenly spaced hues around the HCL color scale. This works well for up to about eight colors, but after it becomes difficult to see the differences. The HCL parameters are modifiable though!
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+
+bars
+bars + scale_fill_hue(c=40)
+bars + scale_fill_hue(h = c(180,300))
+```
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+
+bars + scale_fill_grey()
+bars + scale_fill_grey(start = 0.5, end = 1)
+bars + scale_fill_grey(start = 0, end = 0.5)
+```
+### 11.3.3 Paletteer scales
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+
+bars + paletteer::scale_fill_paletteer_d("rtist::vangogh")
+bars + paletteer::scale_fill_paletteer_d("colorBlindness::paletteMartin")
+bars + paletteer::scale_fill_paletteer_d("wesanderson::FantasticFox1")
+```
+### 11.3.4 Manual scales
+Can specify the color but also assign colors to each level in the order that you specify. 
+```{r}
+#| layout-ncol: 4
+#| fig-width: 3
+#| fig-height: 3
+bars + 
+  scale_fill_manual(
+    values = c("sienna1", "sienna4", "hotpink1", "hotpink4")
+  )
+
+bars + 
+  scale_fill_manual(
+    values = c("tomato1", "tomato2", "tomato3", "tomato4")
+  )
+
+bars + 
+  scale_fill_manual(
+    values = c("grey", "black", "grey", "grey")
+  )
+
+bars + 
+  scale_fill_manual(
+    values = c(
+      "d" = "grey",
+      "c" = "grey",
+      "b" = "black",
+      "a" = "grey"
+    )
+  )
+```
+### 11.3.5 Limits, breaks, and labels
+Can either use the `limits` argument to the `scale` argument. Or by using the `lims()` helper function. 
+
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+#| 
+mpg_99 <- mpg %>% filter(year == 1999)
+mpg_08 <- mpg %>% filter(year == 2008)
+
+base_99 <- ggplot(mpg_99, aes(displ, hwy, colour = fl)) + geom_point()  # Color is fuel type
+base_08 <- ggplot(mpg_08, aes(displ, hwy, colour = fl)) + geom_point() 
+
+base_99
+base_08
+```
+Use this to get consistent mapping for each color aesthetic, it will manually set the limits.
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+base_99 + lims(colour = c("c", "d", "e", "p", "r"))
+base_08 + lims(colour = c("c", "d", "e", "p", "r"))
+```
+As shown in previous chapters `lims()` is for other aesthetics so they both can be modified in the same function call. 
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+base_99 + 
+  lims(
+    x = c(1, 7), 
+    y = c(10, 45), 
+    colour = c("c", "d", "e", "p", "r")
+  )
+
+base_08 + 
+  lims(
+    x = c(1, 7), 
+    y = c(10, 45), 
+    colour = c("c", "d", "e", "p", "r")
+  )
+```
+There are potential limitations with these figures, the first being the scale limits for the 1999 data display labels for all five fuel types even though they're not in the data. This can be addressed by specifying the scale breaks. The second limitation is the labels are not particularly helpful which can be addressed by specifying them manually. 
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+base_99 + 
+  scale_color_discrete(
+    limits = c("c", "d", "e", "p", "r"), 
+    breaks = c("d", "p", "r"),
+    labels = c("diesel", "premium", "regular")
+  )
+
+## And with earlier changes
+base_99 + 
+  lims(x = c(1, 7), y = c(10, 45)) +
+  scale_color_discrete(
+    limits = c("c", "d", "e", "p", "r"), 
+    breaks = c("d", "p", "r"),
+    labels = c("diesel", "premium", "regular")
+  )
+
+base_08 + 
+  lims(x = c(1, 7), y = c(10, 45)) +
+  scale_color_discrete(
+    limits = c("c", "d", "e", "p", "r"), 
+    labels = c("compressed", "diesel", "ethanol", "premium", "regular")
+  )
+```
+### 11.3.6 Legends
+Legends can be customized using the `guide` argument or with the `guides()` helper function and the `guide_legend()` functiodn.
+ - `nrow` or `ncol` specifies the dimension of the table. `byrow` controls how the table is filled with `FALSE` being by column and `TRUE` for by row. 
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+base <-  ggplot(mpg, aes(drv,fill = factor(cyl))) + geom_bar()
+
+base
+base + guides(fill = guide_legend(ncol=2))
+base + guides(fill = guide_legend(ncol = 2, byrow=TRUE))
+```
+- `reverse` reverses the order of the keys
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+
+base 
+base + guides(fill = guide_legend(reverse=TRUE))
+```
+- `override.aes` is useful when you want the elements in the legend to display differently to the geoms in the plot. Useful when there is transparency or size to deal with overplotting with different colors. 
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+
+base <- ggplot(mpg, aes(displ,hwy,color=drv)) +
+  geom_point(size = 4, alpha = 0.2, stroke = 0)
+
+base + guides(color = guide_legend())
+base + guides(color = guide_legend(override.aes = list(alpha=1)))
+```
+- `keywidth` and `keyheight` (along with `default.unit`) allow you to specify the size of the keys with grid unit, e.g. `unit(1,'cm')`.
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+
+base + guides(color = guide_legend(keyheight = unit(0.5,'cm'),keywidth=unit(1.5,'cm')))
+base + guides(color = guide_legend(keyheight = unit(1.5,'cm'),keywidth=unit(0.5,'cm')))
+```
+
+## 11.4 Binned color scales
