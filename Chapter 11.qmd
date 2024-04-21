@@ -59,7 +59,9 @@ erupt
 erupt + scale_fill_viridis_c()
 erupt + scale_fill_viridis_c(option = 'magma')
 ```
+
 Or `scale_fill_distiller()`
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -68,7 +70,9 @@ erupt + scale_fill_distiller()
 erupt + scale_fill_distiller(palette = 'RdPu')
 erupt + scale_fill_distiller(palette = 'YlOrBr')
 ```
+
 Or *scico* package for other palettes that are perpectually uniform and suitable for scientific visualization
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -77,7 +81,9 @@ erupt + scico::scale_fill_scico(palette = 'bilbao') # default
 erupt + scico::scale_fill_scico(palette = 'vik')
 erupt + scico::scale_fill_scico(palette = 'lajolla')
 ```
-And lastly my recommended palette package *paletteer* which combines everything shown. 
+
+And lastly my recommended palette package *paletteer* which combines everything shown.
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -86,8 +92,11 @@ And lastly my recommended palette package *paletteer* which combines everything 
 erupt + paletteer::scale_fill_paletteer_c('viridis::plasma')
 erupt + paletteer::scale_fill_paletteer_c('scico::tokyo')
 ```
+
 ### 11.2.2 Robust recipes
-These return the same plot. 
+
+These return the same plot.
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -97,10 +106,9 @@ erupt
 erupt + scale_fill_continuous()
 erupt + scale_fill_gradient()
 ```
-Gradient scales provide a robust method for creating any color scheme you like. You just specify two or more reference colors and *ggplot2* will interpolate linearly between them. 
-- `scale_fill_gradient()` produces a two-color gradient
-- `scale_fill_gradient2()` produces a three-color gradient with specified midpoint
-- `scale_fill_gradientn()` produces an n-color gradient. 
+
+Gradient scales provide a robust method for creating any color scheme you like. You just specify two or more reference colors and *ggplot2* will interpolate linearly between them. - `scale_fill_gradient()` produces a two-color gradient - `scale_fill_gradient2()` produces a three-color gradient with specified midpoint - `scale_fill_gradientn()` produces an n-color gradient.
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -116,7 +124,9 @@ erupt +
   )
 erupt + scale_fill_gradientn(colors = terrain.colors(7))
 ```
-Gradient color palettes require a bit more thought. Generally, for a two-point gradient scale you want to convey the perceptual impression that the values are sequentially ordered, so you want to keep hue constant, and vary chroma and luminance. The Munsell color system is useful for this as it proivides an easy way of specifying colros based on their hue, chroma, and luminance. Accessed through the *munsell* package (https://github.com/cwickham/munsell/). 
+
+Gradient color palettes require a bit more thought. Generally, for a two-point gradient scale you want to convey the perceptual impression that the values are sequentially ordered, so you want to keep hue constant, and vary chroma and luminance. The Munsell color system is useful for this as it proivides an easy way of specifying colros based on their hue, chroma, and luminance. Accessed through the *munsell* package (https://github.com/cwickham/munsell/).
+
 ```{r}
 #| layout-ncol: 2
 #| fig-width: 3
@@ -141,7 +151,9 @@ erupt + scale_fill_gradient(
 )
 
 ```
-n-point gradient is good if you want to try to map the colors to the context of the figure. So if green/blue/whatever color is supposed to mean something to the audience then you can easily pick a color range that's best for it. 
+
+n-point gradient is good if you want to try to map the colors to the context of the figure. So if green/blue/whatever color is supposed to mean something to the audience then you can easily pick a color range that's best for it.
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -160,8 +172,11 @@ erupt + scale_fill_gradient2(
 erupt + scale_fill_gradientn(colours = colorspace::heat_hcl(7))
 erupt + scale_fill_gradientn(colours = colorspace::diverge_hcl(7))
 ```
+
 ### 11.2.3 Missing values
-All continuous color scales have an `na.value` parameter that controls what color is used for missing values (including values outside of the range of scale limits). Setting `na.value=NA` makes missing values invisible. 
+
+All continuous color scales have an `na.value` parameter that controls what color is used for missing values (including values outside of the range of scale limits). Setting `na.value=NA` makes missing values invisible.
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -179,7 +194,9 @@ base + scale_fill_gradient(na.value = NA)
 base + scale_fill_gradient(na.value = 'yellow')
 
 ```
+
 ### 11.2.4 Limits, breaks, and labels
+
 ```{r}
 #| layout-ncol: 2
 #| fig-width: 3
@@ -200,6 +217,7 @@ base <- ggplot(toy, aes(up,up, fill = big)) +
 base
 base + scale_fill_continuous(limits = c(0,10000))
 ```
+
 ```{r}
 #| layout-ncol: 2
 #| fig-width: 3
@@ -208,18 +226,19 @@ base + scale_fill_continuous(limits = c(0,10000))
 base + scale_fill_continuous(breaks = c(1000,2000,4000)) # Can supress breaks entirely by setting them to NULL
 base + scale_fill_continuous(labels = scales::label_dollar())
 ```
+
 ### 11.2.5 Legends
-Default continuous color bar is a gradient. 
+
+Default continuous color bar is a gradient.
+
 ```{r}
 base <- ggplot(mpg,aes(cyl,displ,color=hwy))+
   geom_point(size=2)
 
 base
 ```
-The appearance is controlled using the `guide_colorbar()` function. The most important arguments are
-- `reverse` to flip the color bar to put the lowest values at the top
-- `barwidth` and `barheight` to specify the size of the bar, specified by grid units, e.g. `unit(1,'cm')`
-- `direction` specifies the direction of the guide, `"horizontal"` or `"vertical"`.
+
+The appearance is controlled using the `guide_colorbar()` function. The most important arguments are - `reverse` to flip the color bar to put the lowest values at the top - `barwidth` and `barheight` to specify the size of the bar, specified by grid units, e.g. `unit(1,'cm')` - `direction` specifies the direction of the guide, `"horizontal"` or `"vertical"`.
 
 ```{r}
 #| layout-ncol: 3
@@ -231,7 +250,9 @@ base + guides(color = guide_colorbar(reverse=TRUE))
 base + guides(color = guide_colorbar(unit(2,'cm')))
 base + guides(color = guide_colorbar(direction='horizontal'))
 ```
+
 Or an alternative
+
 ```{r}
 #| layout-ncol: 2
 #| fig-width: 3
@@ -240,8 +261,11 @@ Or an alternative
 base + guides(color = guide_colorbar(reverse=TRUE))
 base + scale_color_continuous(guide = guide_colorbar(reverse = TRUE))
 ```
+
 ## 11.3 Discrete color scales
-Note that a discrete color scale will use `fill` aesthetic instead of the `color` aesthetic for continuous. 
+
+Note that a discrete color scale will use `fill` aesthetic instead of the `color` aesthetic for continuous.
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -257,13 +281,17 @@ bars + scale_fill_discrete() # Default
 bars + scale_fill_hue() # Same as default
 
 ```
+
 ### 11.3.1 Brewer scales
-`scale_color_brewer()` is a discrete color scale that, along with the continuous analog `scale_color_distiller()` and binned analog `scale_color_fermenter()`, uses handpicked "ColorBrewer" colors from https://colorbrewer2.org/. 
+
+`scale_color_brewer()` is a discrete color scale that, along with the continuous analog `scale_color_distiller()` and binned analog `scale_color_fermenter()`, uses handpicked "ColorBrewer" colors from https://colorbrewer2.org/.
+
 ```{r}
 #| fig-width: 7
 #| fig-height: 10
 RColorBrewer::display.brewer.all()
 ```
+
 The first grouping are sequential scales and the second grouping is for not ordered categorical data.
 
 ```{r}
@@ -282,8 +310,11 @@ area + scale_fill_brewer(palette = "Set1")
 area + scale_fill_brewer(palette = "Set2")
 area + scale_fill_brewer(palette = "Pastel1")
 ```
+
 ### 11.3.2 Hue and grey scales
+
 The default color scheme picks evenly spaced hues around the HCL color scale. This works well for up to about eight colors, but after it becomes difficult to see the differences. The HCL parameters are modifiable though!
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -293,6 +324,7 @@ bars
 bars + scale_fill_hue(c=40)
 bars + scale_fill_hue(h = c(180,300))
 ```
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -302,7 +334,9 @@ bars + scale_fill_grey()
 bars + scale_fill_grey(start = 0.5, end = 1)
 bars + scale_fill_grey(start = 0, end = 0.5)
 ```
+
 ### 11.3.3 Paletteer scales
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -312,8 +346,11 @@ bars + paletteer::scale_fill_paletteer_d("rtist::vangogh")
 bars + paletteer::scale_fill_paletteer_d("colorBlindness::paletteMartin")
 bars + paletteer::scale_fill_paletteer_d("wesanderson::FantasticFox1")
 ```
+
 ### 11.3.4 Manual scales
-Can specify the color but also assign colors to each level in the order that you specify. 
+
+Can specify the color but also assign colors to each level in the order that you specify.
+
 ```{r}
 #| layout-ncol: 4
 #| fig-width: 3
@@ -343,8 +380,10 @@ bars +
     )
   )
 ```
+
 ### 11.3.5 Limits, breaks, and labels
-Can either use the `limits` argument to the `scale` argument. Or by using the `lims()` helper function. 
+
+Can either use the `limits` argument to the `scale` argument. Or by using the `lims()` helper function.
 
 ```{r}
 #| layout-ncol: 2
@@ -360,7 +399,9 @@ base_08 <- ggplot(mpg_08, aes(displ, hwy, colour = fl)) + geom_point()
 base_99
 base_08
 ```
+
 Use this to get consistent mapping for each color aesthetic, it will manually set the limits.
+
 ```{r}
 #| layout-ncol: 2
 #| fig-width: 3
@@ -368,7 +409,9 @@ Use this to get consistent mapping for each color aesthetic, it will manually se
 base_99 + lims(colour = c("c", "d", "e", "p", "r"))
 base_08 + lims(colour = c("c", "d", "e", "p", "r"))
 ```
-As shown in previous chapters `lims()` is for other aesthetics so they both can be modified in the same function call. 
+
+As shown in previous chapters `lims()` is for other aesthetics so they both can be modified in the same function call.
+
 ```{r}
 #| layout-ncol: 2
 #| fig-width: 3
@@ -387,7 +430,9 @@ base_08 +
     colour = c("c", "d", "e", "p", "r")
   )
 ```
-There are potential limitations with these figures, the first being the scale limits for the 1999 data display labels for all five fuel types even though they're not in the data. This can be addressed by specifying the scale breaks. The second limitation is the labels are not particularly helpful which can be addressed by specifying them manually. 
+
+There are potential limitations with these figures, the first being the scale limits for the 1999 data display labels for all five fuel types even though they're not in the data. This can be addressed by specifying the scale breaks. The second limitation is the labels are not particularly helpful which can be addressed by specifying them manually.
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -415,9 +460,11 @@ base_08 +
     labels = c("compressed", "diesel", "ethanol", "premium", "regular")
   )
 ```
+
 ### 11.3.6 Legends
-Legends can be customized using the `guide` argument or with the `guides()` helper function and the `guide_legend()` functiodn.
- - `nrow` or `ncol` specifies the dimension of the table. `byrow` controls how the table is filled with `FALSE` being by column and `TRUE` for by row. 
+
+Legends can be customized using the `guide` argument or with the `guides()` helper function and the `guide_legend()` functiodn. - `nrow` or `ncol` specifies the dimension of the table. `byrow` controls how the table is filled with `FALSE` being by column and `TRUE` for by row.
+
 ```{r}
 #| layout-ncol: 3
 #| fig-width: 3
@@ -428,7 +475,9 @@ base
 base + guides(fill = guide_legend(ncol=2))
 base + guides(fill = guide_legend(ncol = 2, byrow=TRUE))
 ```
-- `reverse` reverses the order of the keys
+
+-   `reverse` reverses the order of the keys
+
 ```{r}
 #| layout-ncol: 2
 #| fig-width: 3
@@ -437,7 +486,9 @@ base + guides(fill = guide_legend(ncol = 2, byrow=TRUE))
 base 
 base + guides(fill = guide_legend(reverse=TRUE))
 ```
-- `override.aes` is useful when you want the elements in the legend to display differently to the geoms in the plot. Useful when there is transparency or size to deal with overplotting with different colors. 
+
+-   `override.aes` is useful when you want the elements in the legend to display differently to the geoms in the plot. Useful when there is transparency or size to deal with overplotting with different colors.
+
 ```{r}
 #| layout-ncol: 2
 #| fig-width: 3
@@ -449,7 +500,9 @@ base <- ggplot(mpg, aes(displ,hwy,color=drv)) +
 base + guides(color = guide_legend())
 base + guides(color = guide_legend(override.aes = list(alpha=1)))
 ```
-- `keywidth` and `keyheight` (along with `default.unit`) allow you to specify the size of the keys with grid unit, e.g. `unit(1,'cm')`.
+
+-   `keywidth` and `keyheight` (along with `default.unit`) allow you to specify the size of the keys with grid unit, e.g. `unit(1,'cm')`.
+
 ```{r}
 #| layout-ncol: 2
 #| fig-width: 3
@@ -460,3 +513,73 @@ base + guides(color = guide_legend(keyheight = unit(1.5,'cm'),keywidth=unit(0.5,
 ```
 
 ## 11.4 Binned color scales
+
+Color scales also can come in binned versions. Sometimes makes it easier to detect changes.
+
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+#| 
+erupt + scale_fill_binned()
+erupt + scale_fill_steps()
+erupt + scale_fill_steps(n.breaks = 8) # Control number of steps
+```
+
+`scale_fill_steps()` is analogous to `scale_fill_gradient()` so has similar functions shown earlier.
+
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+#| 
+erupt + scale_fill_steps(low = 'grey',high = 'brown')
+erupt + scale_fill_steps2(low='grey',mid = 'white',high='brown',midpoint = 0.02)
+erupt + scale_fill_stepsn(n.breaks=12,colors = terrain.colors(12))
+```
+
+With access to the viridis palettes and brewer palettes like before...
+
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+#| 
+erupt + scale_fill_stepsn(n.breaks = 9, colours = viridis::viridis(9))
+erupt + scale_fill_stepsn(n.breaks = 9, colours = viridis::magma(9))
+erupt + scale_fill_stepsn(n.breaks = 9, colours = viridis::inferno(9))
+
+erupt + scale_fill_fermenter(n.breaks = 9)
+erupt + scale_fill_fermenter(n.breaks = 9, palette = "Oranges")
+erupt + scale_fill_fermenter(n.breaks = 9, palette = "PuOr")
+```
+### 11.4.1 Limits, breaks, and labels
+Same logic as continuous scales. `limits` argument is a numeric vector specifying two end points, `breaks` is a numeric vector specifying the break points, and `labels` is a character vector specifying the labels. 
+
+:::{.callout-note}
+
+#### Is anything different?
+
+The `breaks` argument defines the edges of the bins rather than simply specifying locations of tick marks.
+
+### 11.4.2 Legends
+Similar to before but the function is `guide_colorsteps()` within the `guides()` helper function. 
+- `show.limits` indicates whether the values should be shown at the ends of the stepped color bar. 
+```{r}
+#| layout-ncol: 2
+base <- ggplot(mpg, aes(cyl, displ, colour = hwy)) +
+  geom_point(size = 2) +
+  scale_color_binned()
+
+base 
+base + guides(colour = guide_coloursteps(show.limits = TRUE))
+```
+- `ticks` is a logical variable indicating whether tick marks should be displayed adjacent to the legend labels (default is `NULL`)
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+base + guides(colour = guide_coloursteps(ticks = TRUE))
+```
+- `even.steps` is a logical variable indicating whether bins should be evenly spaced (default is `TRUE`) or proportional in size to their frequency in the data
+
+## 11.5 Date-time color scales
