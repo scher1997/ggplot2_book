@@ -1,0 +1,233 @@
+---
+title: "Chapter 12"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# Other aesthetics
+
+Imports
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(patchwork)
+
+planets <- data.frame(
+  name = c("Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"),
+  type = c(rep("Inner", 4), rep("Outer", 4)),
+  position = 1:8,
+  radius = c(2440, 6052, 6378, 3390, 71400, 60330, 25559, 24764),
+  orbit = c(57900000, 108200000, 149600000, 227900000, 778300000, 1427000000, 2871000000, 4497100000)
+#  mass = c(3.3022e+23, 4.8685e+24, 5.9736e+24, 6.4185e+23, 1.8986e+27, 5.6846e+26, 8.681e+25, 1.0243e+26)
+)
+planets$name <- with(planets, factor(name, name))
+
+```
+
+## 12.1 Size
+Scale points and text with the default scale with `scale_size()`.
+
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+base <- ggplot(mpg, aes(displ, hwy, size = cyl)) +
+  geom_point()
+
+base
+base + scale_size(range = c(1,2))
+```
+Several other scales include:
+- `scale_size_area()` and `scale_size_bined_area()` are versions of `scale_size()` that ensure that a value of 0 maps to an area of zero
+- `scale_radius()` maps the data value to the radius rather than to the area
+- `scale_size_binned()` is the size scale that behaves like `scale_size()` but maps continuous values onto discrete size categories, analogous to the binned position and color scales. 
+- `scale_size_date()` and `scale_size_datetime()` are designed for dates. 
+
+### 12.1.1 Radius size scales
+`scale_radius()` is a good alternative where area scaling is undesirable (i.e. not linear). For example in the data below using `scale_radius()` for the radius of a planet does not scale correctly.
+```{r}
+#| layout-ncol: 2
+#| fig-width: 3
+#| fig-height: 3
+head(planets)
+
+base <- ggplot(planets, aes(1, name, size = radius)) +
+  geom_point() +
+  scale_x_continuous(breaks = NULL) +
+  labs(x = NULL, y = NULL, size = NULL)
+
+base + ggtitle('not to scale')
+base + scale_radius(limits = c(0,NA), range = c(0,10)) +
+  ggtitle('to scale')
+```
+
+### 12.1.2 Binned scale sizes
+Binned size scales work similarly to binned scales for color and position aesthetics. The helper function `guide_bins()` provides several nice functionalities. 
+```{r}
+base <-  ggplot(mpg, aes(displ, manufacturer, size = hwy)) +
+  geom_point(alpha = 0.2) +
+  scale_size_binned()
+
+base
+```
+- `axis` indicates whether the axis should be drawn 
+```{r}
+base + guides(size = guide_bins(axis=FALSE))
+```
+- `direction` is a character string specifying the direction of the guide, either `'vertical'` or `'horizontal'`. 
+```{r}
+base + guides(size = guide_bins(direction = 'horizontal'))
+```
+- `show.limits` specifies tick marks
+```{r}
+base + guides(size = guide_bins(show.limits = TRUE))
+```
+- `axis.color`, `axis.linewidth`, and `axis.arrow` are used to control the guide axis that is displayed alongside the legend keys. 
+```{r}
+base + guides(
+  size = guide_bins(
+    axis.colour = "lightgreen",
+    axis.arrow = arrow(
+      length = unit(.1, "inches"), 
+      ends = "first", 
+      type = "closed"
+    )
+  )
+)
+```
+`keywidth`, `keyheight`, `reverse`, and `override.aes` have the same behavior for `guide_bins()` as they do for `guide_legend()`.
+
+## 12.2 Shape
+`shape` is good to use for when there are a small number of discrete categories. The default of `scale_shape()` function is `solid=TRUE` to use a "palette" consisting of three solid and three hollow shapes while `solid=FALSE` is six hollow shapes. `scale_shape_manual()` allows the selection of specific shapes for values.  
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+base <- ggplot(mpg, aes(displ, hwy, shape = factor(cyl))) +
+  geom_point() +
+  labs(shape = '# Cylinders')
+base 
+base + scale_shape(solid = FALSE)
+base + scale_shape_manual(values = c('4' = 16, '5' = 17, '6' = 1, '8'= 2))
+```
+## 12.3 Line width
+```{r}
+#| layout-ncol: 3
+#| fig-width: 3
+#| fig-height: 3
+
+base <- ggplot(airquality, aes(x = factor(Month), y = Temp))
+
+base + geom_pointrange(stat = 'summary', fun.data = 'median_hilow') +
+  labs(title = 'Default point/linewidth')
+base + geom_pointrange(stat = 'summary', fun.data = 'median_hilow', size = 2) + 
+  labs(title = 'Larger points')
+base + geom_pointrange(stat = 'summary', fun.data = 'median_hilow', size = 2) +
+  labs(title = 'Large linewidth')
+```
+linewidth is also an aesthetic so it can be mapped onto data values:
+```{r}
+ggplot(airquality, aes(Day, Temp, group = Month)) +
+  geom_line(aes(linewidth = Month)) +
+  scale_linewidth(range = c(0.5, 3))
+```
+## 12.4 Line type
+Makes sense for `geom_line()` but even with 5 categories (see below) it can be a lot. 
+```{r}
+ggplot(economics_long, aes(date, value01, linetype = variable)) +
+  geom_line()
+```
+The 13 line types are
+```{r}
+df <- data.frame(value = letters[1:13])
+base <- ggplot(df, aes(linetype = value)) +
+  geom_segment(
+    mapping = aes(x = 0, xend = 1, y = value, yend = value),
+    show.legend = FALSE
+  ) +
+  theme(panel.grid = element_blank()) +
+  scale_x_continuous(NULL, NULL) 
+
+base
+```
+If you want to control the length of the line segments and the length of the space between segments you can provide up to 8 hexadecimal values (i.e., from 0 to F). 
+```{r}
+linetypes <- function(n) {
+  types <- c("55",  "75", "95", "1115", "111115", "11111115",
+             "5158", "9198", "c1c8")
+  return(types[seq_len(n)])
+}
+
+base + scale_linetype(palette = linetypes, na.value = "dotted") # set na.value to specify what kind of line is plotted
+```
+## 12.5 Manual scales
+To display multiple variables on the same plot and show a useful legend use `scale_color_manual()`. 
+
+```{r}
+huron <- tibble(year = 1875:1972, level = as.numeric(LakeHuron))
+
+ggplot(huron, aes(year)) +
+  geom_line(aes(y = level + 5, colour = "above")) + # Give informative labels for legend
+  geom_line(aes(y = level - 5, colour = "below")) +
+  scale_colour_manual("Direction",
+    values = c("above" = "red", "below" = "blue") # Then map labels to colors
+  )
+```
+## 12.6 Identity scales
+Identity scales, such as `scale_color_identity()` and `scale_shape_identity()`, are useful when data is already scaled such that the data and aesthetic spaces are the same. 
+```{r}
+head(luv_colours) # The locations of all R's built-in colors in the LUV color space
+
+ggplot(luv_colours, aes(u,v)) +
+  geom_point(aes(color=col),size=3) +
+  scale_color_identity() +
+  coord_equal()
+```
+## 12.7 Chapter Project
+```{r}
+economics |>
+  select(date, psavert, uempmed) |> 
+  pivot_longer(
+    cols = c(psavert, uempmed),
+    names_to = "indicator",
+    values_to = "value"
+  ) |> 
+  ggplot(aes(x = date,
+             y = value,
+             linetype = indicator, 
+             linewidth = indicator)) +
+  geom_line(aes(color=indicator)) +
+  scale_linetype_manual(
+    values = c(1, 3),
+    labels = c(
+      "Personal savings rate (%)",
+      "Median duration of unemployment, in weeks"
+    ),
+    name = NULL
+  ) +
+  scale_linewidth_manual(
+    values = c(1, 0.5)
+  ) +
+  scale_color_manual(values = c('blue','red'),guide = 'none') +
+  guides(
+    linewidth = "none",
+    linetype = guide_legend(
+      override.aes = list(linewidth = 1),
+      keywidth = unit(1, "cm")
+    )
+  ) +
+  labs(
+    x = NULL, y = NULL,
+    title = "USA: Comparing Unemployment and Savings Rate trends"
+  ) +
+  cowplot::theme_half_open() +
+  theme(
+    legend.position = "bottom",
+    axis.line = element_line(arrow = arrow(length = unit(3, "mm")))
+  )
+```
+
+
